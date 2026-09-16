@@ -85,6 +85,8 @@ _R-0002/R-0003 need the human (credentials) but do NOT block downstream code tas
 | R-0007 | T03 | blocker | No SERPER_API_KEY/OPENROUTER_API_KEY/reachable MongoDB to live-verify web_search/generate_poster/save_post end-to-end | T04,T15,T17 | true | acknowledged |
 | R-0008 | T17 | new-requirement | Proposed `Schedule` shape (`{topic, cadence, enabled, nextRunAt, lastResult?, createdAt, updatedAt}`) seeded ahead of T14 | T14 | false | open |
 | R-0009 | T04 | blocker | No OPENROUTER_API_KEY/SERPER_API_KEY/MONGODB_URI to live-run buildNetwork(options).run(topic) end-to-end; router determinism fully verified in isolation (9/9 vitest cases, zero external services) | T05,T18 | true | acknowledged |
+| R-0010 | T05 | blocker | No credentials to live-verify generatePost's full 6-stage run; event contract + error path partially live-verified without keys | T06,T11,T14,T18 | true | acknowledged |
+| R-0011 | T05 | decision-needed | T04's agents (merged) gracefully degrade tool/model errors instead of throwing, so "bad SERPER_API_KEY → status:failed" (a T05 acceptance criterion) will likely never fire — a bad key produces a degraded-but-`done` post instead | T04,T06,T11,T16,T18 | **true** | **ESCALATED — see below** |
 
 ## Resolved reports
 _None yet — this is a fresh build. See "Known pitfalls from a prior build" in `README.md` for issues a previous implementation of this same plan hit and fixed; reference them, don't re-litigate them._
