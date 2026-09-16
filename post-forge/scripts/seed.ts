@@ -1,14 +1,19 @@
 /**
- * Seed / demo data script (T17) — posts fixtures (step 1 of 3: posters/
- * GridFS and schedules land in follow-up commits).
+ * Seed / demo data script (T17) — posts + poster images (step 2 of 3:
+ * schedules land in a follow-up commit).
  *
  * Populates the `posts` collection with varied statuses (done/failed/
  * in-progress) and realistic stages/subProgress/sources/telemetry so
- * dashboard charts and the library have something to render.
+ * dashboard charts and the library have something to render, plus a few
+ * placeholder poster images in the `posters` GridFS bucket (no paid image
+ * API calls — bytes are generated locally) so thumbnails + poster routes
+ * resolve.
  *
  * Writes posts only through the canonical `Post`/`Finding`/`Stage` shapes
- * from `src/lib/state.ts` (T02), via the same `getDb()` accessor the real
- * pipeline uses, so seeded data is indistinguishable from a real run.
+ * from `src/lib/state.ts` (T02), via the same `getDb()`/`getBucket()`
+ * accessors (and the same GridFS `{mime, postId}` metadata contract) the
+ * real pipeline (T03's `generate_poster` tool) uses, so seeded data is
+ * indistinguishable from a real run.
  */
 
 // `tsx scripts/seed.ts` runs outside Next.js, so `.env` isn't auto-loaded —
@@ -22,7 +27,8 @@ try {
 }
 
 import { ObjectId } from "mongodb";
-import { getDb } from "../src/lib/mongo";
+import { deflateSync } from "node:zlib";
+import { getDb, getBucket } from "../src/lib/mongo";
 import { initialStages, type Post, type Stage, type StageState } from "../src/lib/state";
 
 // ---------------------------------------------------------------------------
@@ -37,6 +43,74 @@ const SEED_IDS = {
   posterDone2: new ObjectId("650000000000000000000102"),
   posterFailed: new ObjectId("650000000000000000000103"),
 };
+
+// ---------------------------------------------------------------------------
+// Minimal, dependency-free PNG encoder — produces a small solid-color PNG so
+// seeding never needs the paid poster image API. Implements its own CRC32
+// (rather than relying on the newer `zlib.crc32`, which isn't available on
+// Node 20) so this runs on any Node version the project supports.
+// ---------------------------------------------------------------------------
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(buf: Buffer): number {
+  let crc = 0xffffffff;
+  for (const byte of buf) {
+    crc = CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function pngChunk(type: string, data: Buffer): Buffer {
+  const typeBuf = Buffer.from(type, "ascii");
+  const lenBuf = Buffer.alloc(4);
+  lenBuf.writeUInt32BE(data.length, 0);
+  const crcBuf = Buffer.alloc(4);
+  crcBuf.writeUInt32BE(crc32(Buffer.concat([typeBuf, data])), 0);
+  return Buffer.concat([lenBuf, typeBuf, data, crcBuf]);
+}
+
+/** Builds a tiny solid-color RGB PNG (no external deps) as a placeholder poster. */
+function makePlaceholderPng(
+  [r, g, b]: [number, number, number],
+  size = 64
+): Buffer {
+  const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const ihdrData = Buffer.alloc(13);
+  ihdrData.writeUInt32BE(size, 0);
+  ihdrData.writeUInt32BE(size, 4);
+  ihdrData[8] = 8; // bit depth
+  ihdrData[9] = 2; // color type: truecolor (RGB)
+  ihdrData[10] = 0; // compression
+  ihdrData[11] = 0; // filter
+  ihdrData[12] = 0; // interlace
+  const ihdr = pngChunk("IHDR", ihdrData);
+
+  const rowSize = size * 3;
+  const raw = Buffer.alloc((rowSize + 1) * size);
+  for (let y = 0; y < size; y++) {
+    const rowStart = y * (rowSize + 1);
+    raw[rowStart] = 0; // filter type: none
+    for (let x = 0; x < size; x++) {
+      const off = rowStart + 1 + x * 3;
+      raw[off] = r;
+      raw[off + 1] = g;
+      raw[off + 2] = b;
+    }
+  }
+  const idat = pngChunk("IDAT", deflateSync(raw));
+  const iend = pngChunk("IEND", Buffer.alloc(0));
+  return Buffer.concat([sig, ihdr, idat, iend]);
+}
 
 // ---------------------------------------------------------------------------
 // Post fixtures
@@ -180,8 +254,33 @@ function buildInProgressPost(id: ObjectId, baseTime: number): Post {
 // ---------------------------------------------------------------------------
 // Seeding
 // ---------------------------------------------------------------------------
+async function seedPoster(
+  bucket: Awaited<ReturnType<typeof getBucket>>,
+  id: ObjectId,
+  color: [number, number, number],
+  postId: ObjectId
+): Promise<void> {
+  // Idempotency: delete any prior file at this fixed id before re-uploading
+  // (GridFS has no upsert-by-id upload).
+  try {
+    await bucket.delete(id);
+  } catch {
+    // Not found on a first run — expected, ignore.
+  }
+  const bytes = makePlaceholderPng(color);
+  await new Promise<void>((resolve, reject) => {
+    const uploadStream = bucket.openUploadStreamWithId(id, `seed-poster-${id.toHexString()}`, {
+      metadata: { mime: "image/png", postId: postId.toString() },
+    });
+    uploadStream.once("error", reject);
+    uploadStream.once("finish", () => resolve());
+    uploadStream.end(bytes);
+  });
+}
+
 async function main(): Promise<void> {
   const db = await getDb();
+  const bucket = await getBucket();
   const now = new Date();
   const baseTime = now.getTime() - 3 * 60 * 60 * 1000; // 3 hours ago
 
@@ -196,6 +295,12 @@ async function main(): Promise<void> {
     await posts.replaceOne({ _id: doc._id }, doc, { upsert: true });
   }
   console.log("[seed] Upserted 4 posts (2 done, 1 failed, 1 in-progress).");
+
+  console.log("[seed] Seeding poster images (GridFS placeholders)...");
+  await seedPoster(bucket, SEED_IDS.posterDone1, [220, 60, 60], SEED_IDS.postDone1);
+  await seedPoster(bucket, SEED_IDS.posterDone2, [60, 140, 220], SEED_IDS.postDone2);
+  await seedPoster(bucket, SEED_IDS.posterFailed, [80, 180, 100], SEED_IDS.postFailed);
+  console.log("[seed] Upserted 3 poster images.");
 
   console.log("[seed] Done.");
 }
