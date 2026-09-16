@@ -12,6 +12,7 @@ import { Collection, ObjectId } from "mongodb";
 import { getDb } from "./mongo";
 import {
   initialStages,
+  type Finding,
   type GenerationOptions,
   type Post,
   type PostStatus,
@@ -214,4 +215,78 @@ export async function recordError(
   message: string
 ): Promise<void> {
   await setStatus(id, "failed", { stage, message });
+}
+
+/**
+ * Fields the `save_post` tool (T03) writes when finalizing a run. `topic`
+ * is required (the network state doesn't carry it); everything else is
+ * optional so a partial/degraded run can still persist what it has.
+ */
+export type FinalPostFields = {
+  topic: string;
+  title?: string;
+  draft?: string;
+  finalPost?: string;
+  research?: Finding[];
+  verifiedFindings?: Finding[];
+  sources?: { title: string; url: string }[];
+  posterImageId?: string;
+  options?: GenerationOptions;
+};
+
+/**
+ * Upserts the complete `Post` document for a run, keyed by `runId` for
+ * idempotency: re-running with the same `runId` updates the existing
+ * document in place rather than creating a duplicate. Moves `status`
+ * to `"done"`. Used by the `save_post` tool (T03) to persist the final
+ * pipeline output; also usable standalone (e.g. by T17's seed script)
+ * since it creates the document via `$setOnInsert` if one doesn't
+ * already exist for that `runId`.
+ */
+export async function upsertFinalPost(
+  runId: string,
+  fields: FinalPostFields
+): Promise<Post> {
+  const posts = await postsCollection();
+  const now = new Date();
+
+  const set: Record<string, unknown> = { updatedAt: now, status: "done" as PostStatus };
+  for (const [key, value] of Object.entries(fields)) {
+    if (value !== undefined) {
+      set[key] = value;
+    }
+  }
+
+  const setOnInsertCandidate: Record<string, unknown> = {
+    _id: new ObjectId(),
+    runId,
+    topic: fields.topic,
+    stages: initialStages(),
+    subProgress: [],
+    research: [],
+    verifiedFindings: [],
+    sources: [],
+    options: fields.options ?? {},
+    telemetry: { tokensByAgent: {}, timingsByStage: {} },
+    createdAt: now,
+  };
+  // Mongo forbids the same path in both $set and $setOnInsert.
+  const setOnInsert: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(setOnInsertCandidate)) {
+    if (!(key in set)) {
+      setOnInsert[key] = value;
+    }
+  }
+
+  await posts.updateOne(
+    { runId },
+    { $set: set, $setOnInsert: setOnInsert },
+    { upsert: true }
+  );
+
+  const doc = await posts.findOne({ runId });
+  if (!doc) {
+    throw new Error(`upsertFinalPost: post not found for runId ${runId} after upsert`);
+  }
+  return doc;
 }
