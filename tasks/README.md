@@ -90,12 +90,12 @@ The finished design from Claude Cloud Design (`PostForge.dc.html`) is **its own 
 |----|------|--------|------|-----------|--------|
 | [T01](T01-scaffolding.md) | Scaffolding, Inngest wiring & env contract | `done` | 0 | — | T02, T07 |
 | [T02](T02-foundation-libs.md) | Foundation libs: Mongo/GridFS, data model, adapters, settings | `done` | 1 | T01 | T03, T04, T05, T06, T14, T17 |
-| [T03](T03-agent-tools.md) | AgentKit tools (search/fetch/poster/save) | `ready` | 2 | T02 | T04, T15, T17 |
-| [T04](T04-agents-and-router.md) | Six agents + deterministic router | `blocked` | 3 | T02, T03 | T05, T18 |
+| [T03](T03-agent-tools.md) | AgentKit tools (search/fetch/poster/save) | `done` | 2 | T02 | T04, T15, T17 |
+| [T04](T04-agents-and-router.md) | Six agents + deterministic router | `ready` | 3 | T02, T03 | T05, T18 |
 | [T05](T05-orchestration.md) | Durable orchestration (+telemetry, +subprogress) | `blocked` | 4 | T02, T04 | T06, T11, T14, T18 |
 | [T06](T06-api-surface.md) | API surface (generate/posts/poster/stats/settings) | `blocked` | 5 | T02, T05 | T10, T11, T12, T13, T15, T18, T19 |
 | [T07](T07-design-system.md) | Design system — implement in code per DESIGN_PROMPT.md | `done` | 1 | T01 | T08, T09 |
-| [T08](T08-app-shell.md) | App shell, navigation & global states | `ready` | 2 | T07 | T10, T11, T13, T14, T15 |
+| [T08](T08-app-shell.md) | App shell, navigation & global states | `done` | 2 | T07 | T10, T11, T13, T14, T15 |
 | [T09](T09-public-surface.md) | Public surface — landing + auth (stub) | `done` | 2 | T07 | T16 |
 | [T10](T10-new-post.md) | New Post screen + trigger flow | `blocked` | 6 | T06, T08 | T16 |
 | [T11](T11-pipeline-showcase.md) | Pipeline showcase (hero) + live polling | `blocked` | 6 | T05, T06, T08 | T12, T16 |
@@ -104,7 +104,7 @@ The finished design from Claude Cloud Design (`PostForge.dc.html`) is **its own 
 | [T14](T14-scheduled-cron.md) | Scheduled / cron management | `blocked` | 6 | T02, T05, T08 | T16 |
 | [T15](T15-settings.md) | Settings (status/test-connection, defaults) | `blocked` | 6 | T03, T06, T08 | T16 |
 | [T16](T16-verification.md) | README + end-to-end verification | `blocked` | 8 | T09–T15, T17, T18, T19 | — |
-| [T17](T17-seed-data.md) | Seed / demo data & fixtures | `blocked` | 3 | T02, T03 | T16 |
+| [T17](T17-seed-data.md) | Seed / demo data & fixtures | `ready` | 3 | T02, T03 | T16 |
 | [T18](T18-tests.md) | Automated test suite | `blocked` | 6 | T04, T05, T06 | T16 |
 | [T19](T19-rate-limit-dedupe.md) | Rate-limit + dedupe guard | `blocked` | 6 | T06 | T16 |
 
@@ -132,4 +132,5 @@ A previous team built this same PLAN.md/DESIGN_PROMPT.md end-to-end and hit real
 - **Client-portal components (toasts/modals) need a mounted-guard** to avoid a server/client hydration mismatch that can silently kill polling UIs.
 - **Turbopack builds inside a git worktree can fail** if `node_modules` is symlinked outside the worktree root — use `next build --webpack` inside a worktree, verify the real Turbopack build after merging to `main`.
 - **The Claude-in-Chrome automation tab reports `document.visibilityState: hidden`**, which pauses any polling that correctly respects the Page Visibility API — override it when screen-verifying a polling screen.
+- **`npm run typecheck` can fail standalone with `Cannot find name 'LayoutProps'`** — Next.js generates ambient route types (`.next/types`) as a side effect of `npm run build`; run build before typecheck (or after touching new route files) if typecheck reports a missing global type.
 - **Never stop a dev server with a broad process-name kill** (e.g. `Get-Process -Name node | Stop-Process -Force` on Windows) — multiple task worktrees run `npm run dev` concurrently on this machine, and a name-based kill hits all of them. Kill by PID or the specific port you started instead.
