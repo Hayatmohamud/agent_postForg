@@ -72,11 +72,11 @@ Escalate (surface in the session, and via a push/Telegram notification if config
 ---
 
 ## Open reports
-_None open._
+_Non-blocking; no dependent tasks paused._
 
 | id | from | type | sev | summary | affects | needsHuman | status |
 |----|------|------|-----|---------|---------|-----------|--------|
-| — | — | — | — | — | — | — | — |
+| R-0001 | T01 | info | Sandboxed agent shells block npm postinstall scripts, so bare `npx inngest-cli@latest dev` fails to fetch its binary in-agent (workaround documented); a normal local/CI environment is unaffected | T16 | false | open |
 
 ## Resolved reports
 _None yet — this is a fresh build. See "Known pitfalls from a prior build" in `README.md` for issues a previous implementation of this same plan hit and fixed; reference them, don't re-litigate them._
