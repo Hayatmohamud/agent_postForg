@@ -1,19 +1,23 @@
 /**
- * Seed / demo data script (T17) — posts + poster images (step 2 of 3:
- * schedules land in a follow-up commit).
+ * Seed / demo data script (T17).
  *
- * Populates the `posts` collection with varied statuses (done/failed/
- * in-progress) and realistic stages/subProgress/sources/telemetry so
- * dashboard charts and the library have something to render, plus a few
+ * Populates the `posts` collection (varied statuses incl. done/failed/
+ * in-progress with realistic stages/subProgress/sources/telemetry), a few
  * placeholder poster images in the `posters` GridFS bucket (no paid image
- * API calls — bytes are generated locally) so thumbnails + poster routes
- * resolve.
+ * API calls — bytes are generated locally), and a couple of sample
+ * `schedules` documents (T14's collection, seeded ahead of that task — see
+ * the `Schedule` type below and the matching report filed in
+ * tasks/reports.jsonl for T14's future implementer).
+ *
+ * Idempotent: every document uses a fixed, hardcoded `_id` (and GridFS file
+ * id), so re-running replaces the same records in place instead of
+ * duplicating them. Safe to run as many times as you like.
  *
  * Writes posts only through the canonical `Post`/`Finding`/`Stage` shapes
  * from `src/lib/state.ts` (T02), via the same `getDb()`/`getBucket()`
  * accessors (and the same GridFS `{mime, postId}` metadata contract) the
- * real pipeline (T03's `generate_poster` tool) uses, so seeded data is
- * indistinguishable from a real run.
+ * real pipeline (T03's `generate_poster`/`save_post` tools) uses, so seeded
+ * data is indistinguishable from a real run.
  */
 
 // `tsx scripts/seed.ts` runs outside Next.js, so `.env` isn't auto-loaded —
@@ -42,6 +46,8 @@ const SEED_IDS = {
   posterDone1: new ObjectId("650000000000000000000101"),
   posterDone2: new ObjectId("650000000000000000000102"),
   posterFailed: new ObjectId("650000000000000000000103"),
+  scheduleEnabled: new ObjectId("650000000000000000000201"),
+  scheduleDisabled: new ObjectId("650000000000000000000202"),
 };
 
 // ---------------------------------------------------------------------------
@@ -252,6 +258,47 @@ function buildInProgressPost(id: ObjectId, baseTime: number): Post {
 }
 
 // ---------------------------------------------------------------------------
+// Schedule fixtures (T14's collection — that task hasn't landed yet, so this
+// is a forward-looking type. See tasks/reports.jsonl for the info report
+// documenting this shape for T14's implementer to adopt.)
+// ---------------------------------------------------------------------------
+type Schedule = {
+  _id: ObjectId;
+  topic: string;
+  cadence: "daily" | "weekly";
+  enabled: boolean;
+  nextRunAt: Date;
+  lastResult?: { status: "success" | "failure"; at: Date; postId?: string };
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function buildSchedules(now: Date, doneRunPostId: ObjectId): Schedule[] {
+  const dayMs = 24 * 60 * 60 * 1000;
+  return [
+    {
+      _id: SEED_IDS.scheduleEnabled,
+      topic: "Daily AI News Roundup",
+      cadence: "daily",
+      enabled: true,
+      nextRunAt: new Date(now.getTime() + dayMs),
+      lastResult: { status: "success", at: new Date(now.getTime() - dayMs), postId: doneRunPostId.toString() },
+      createdAt: new Date(now.getTime() - 7 * dayMs),
+      updatedAt: now,
+    },
+    {
+      _id: SEED_IDS.scheduleDisabled,
+      topic: "Weekly Space Exploration Digest",
+      cadence: "weekly",
+      enabled: false,
+      nextRunAt: new Date(now.getTime() + 7 * dayMs),
+      createdAt: new Date(now.getTime() - 14 * dayMs),
+      updatedAt: now,
+    },
+  ];
+}
+
+// ---------------------------------------------------------------------------
 // Seeding
 // ---------------------------------------------------------------------------
 async function seedPoster(
@@ -301,6 +348,13 @@ async function main(): Promise<void> {
   await seedPoster(bucket, SEED_IDS.posterDone2, [60, 140, 220], SEED_IDS.postDone2);
   await seedPoster(bucket, SEED_IDS.posterFailed, [80, 180, 100], SEED_IDS.postFailed);
   console.log("[seed] Upserted 3 poster images.");
+
+  console.log("[seed] Seeding schedules...");
+  const schedules = db.collection<Schedule>("schedules");
+  for (const doc of buildSchedules(now, SEED_IDS.postDone1)) {
+    await schedules.replaceOne({ _id: doc._id }, doc, { upsert: true });
+  }
+  console.log("[seed] Upserted 2 schedules (1 enabled, 1 disabled).");
 
   console.log("[seed] Done.");
 }
