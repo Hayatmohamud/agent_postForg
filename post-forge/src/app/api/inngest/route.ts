@@ -1,10 +1,11 @@
 import { serve } from "inngest/next";
 
 import { inngest } from "@/inngest/client";
+import { generatePost } from "@/inngest/functions";
 
 /**
- * Inngest HTTP endpoint. No functions are registered yet — later tasks
- * (starting with T05's `generatePost`) add entries to this array.
+ * Inngest HTTP endpoint. `generatePost` (T05) is the first registered
+ * function; later tasks (e.g. T14's cron) add further entries.
  *
  * NOTE: local dev requires `INNGEST_DEV=1` (set in the `dev` npm script)
  * so `npx inngest-cli@latest dev` can sync against this route instead of
@@ -12,5 +13,5 @@ import { inngest } from "@/inngest/client";
  */
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [],
+  functions: [generatePost],
 });
