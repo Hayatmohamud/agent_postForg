@@ -11,6 +11,7 @@ export * from "./Modal";
 export * from "./Tooltip";
 export * from "./Avatar";
 export * from "./EmptyState";
+export * from "./ErrorState";
 export * from "./Skeleton";
 export * from "./Pagination";
 export * from "./Filters";
