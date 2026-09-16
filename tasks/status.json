@@ -37,7 +37,7 @@
     { "id": "T14", "slug": "scheduled-cron", "title": "Scheduled / cron management (screen + cron function + schedules API)", "status": "blocked", "wave": 6, "verify": "mixed", "dependsOn": ["T02", "T05", "T08"], "blocks": ["T16"] },
     { "id": "T15", "slug": "settings", "title": "Settings — integration status/test-connection, defaults & danger zone", "status": "blocked", "wave": 6, "verify": "screen", "dependsOn": ["T03", "T06", "T08"], "blocks": ["T16"] },
     { "id": "T16", "slug": "verification", "title": "README/dev-setup & end-to-end verification", "status": "blocked", "wave": 8, "verify": "mixed", "dependsOn": ["T09", "T10", "T11", "T12", "T13", "T14", "T15", "T17", "T18", "T19"], "blocks": [] },
-    { "id": "T17", "slug": "seed-data", "title": "Seed / demo data & fixtures", "status": "in-progress", "wave": 3, "verify": "screen", "dependsOn": ["T02", "T03"], "blocks": ["T16"] },
+    { "id": "T17", "slug": "seed-data", "title": "Seed / demo data & fixtures", "status": "done", "wave": 3, "verify": "screen", "dependsOn": ["T02", "T03"], "blocks": ["T16"], "note": "typecheck+build clean; script code-reviewed against T02/T03 contracts; live seed run + idempotency check pending MongoDB (R-0002). Schedule shape for T14 documented in R-0008." },
     { "id": "T18", "slug": "tests", "title": "Automated test suite", "status": "blocked", "wave": 6, "verify": "command", "dependsOn": ["T04", "T05", "T06"], "blocks": ["T16"] },
     { "id": "T19", "slug": "rate-limit-dedupe", "title": "Rate-limit + dedupe guard on /api/generate", "status": "blocked", "wave": 6, "verify": "mixed", "dependsOn": ["T06"], "blocks": ["T16"] }
   ]

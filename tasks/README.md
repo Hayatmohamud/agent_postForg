@@ -104,7 +104,7 @@ The finished design from Claude Cloud Design (`PostForge.dc.html`) is **its own 
 | [T14](T14-scheduled-cron.md) | Scheduled / cron management | `blocked` | 6 | T02, T05, T08 | T16 |
 | [T15](T15-settings.md) | Settings (status/test-connection, defaults) | `blocked` | 6 | T03, T06, T08 | T16 |
 | [T16](T16-verification.md) | README + end-to-end verification | `blocked` | 8 | T09–T15, T17, T18, T19 | — |
-| [T17](T17-seed-data.md) | Seed / demo data & fixtures | `ready` | 3 | T02, T03 | T16 |
+| [T17](T17-seed-data.md) | Seed / demo data & fixtures | `done` | 3 | T02, T03 | T16 |
 | [T18](T18-tests.md) | Automated test suite | `blocked` | 6 | T04, T05, T06 | T16 |
 | [T19](T19-rate-limit-dedupe.md) | Rate-limit + dedupe guard | `blocked` | 6 | T06 | T16 |
 
