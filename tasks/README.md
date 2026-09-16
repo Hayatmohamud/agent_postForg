@@ -94,9 +94,9 @@ The finished design from Claude Cloud Design (`PostForge.dc.html`) is **its own 
 | [T04](T04-agents-and-router.md) | Six agents + deterministic router | `blocked` | 3 | T02, T03 | T05, T18 |
 | [T05](T05-orchestration.md) | Durable orchestration (+telemetry, +subprogress) | `blocked` | 4 | T02, T04 | T06, T11, T14, T18 |
 | [T06](T06-api-surface.md) | API surface (generate/posts/poster/stats/settings) | `blocked` | 5 | T02, T05 | T10, T11, T12, T13, T15, T18, T19 |
-| [T07](T07-design-system.md) | Design system — implement in code per DESIGN_PROMPT.md | `ready` | 1 | T01 | T08, T09 |
-| [T08](T08-app-shell.md) | App shell, navigation & global states | `blocked` | 2 | T07 | T10, T11, T13, T14, T15 |
-| [T09](T09-public-surface.md) | Public surface — landing + auth (stub) | `blocked` | 2 | T07 | T16 |
+| [T07](T07-design-system.md) | Design system — implement in code per DESIGN_PROMPT.md | `done` | 1 | T01 | T08, T09 |
+| [T08](T08-app-shell.md) | App shell, navigation & global states | `ready` | 2 | T07 | T10, T11, T13, T14, T15 |
+| [T09](T09-public-surface.md) | Public surface — landing + auth (stub) | `ready` | 2 | T07 | T16 |
 | [T10](T10-new-post.md) | New Post screen + trigger flow | `blocked` | 6 | T06, T08 | T16 |
 | [T11](T11-pipeline-showcase.md) | Pipeline showcase (hero) + live polling | `blocked` | 6 | T05, T06, T08 | T12, T16 |
 | [T12](T12-post-detail.md) | Post detail (finished article) | `blocked` | 7 | T06, T11 | T16 |
