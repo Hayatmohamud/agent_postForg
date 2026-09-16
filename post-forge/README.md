@@ -28,7 +28,15 @@ dashboard will correctly show zero functions — that's expected until T05 lands
 - `npm run lint` — ESLint (flat config)
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run test` — Vitest
-- `npm run seed` — demo/seed data (placeholder until T17)
+- `npm run seed` — populates demo data: a handful of `Post` docs spanning
+  `done`/`failed`/in-progress statuses (with realistic stages, subProgress,
+  sources, and telemetry so dashboard charts have something to render),
+  matching placeholder poster images in the `posters` GridFS bucket (locally
+  generated solid-color PNGs — no paid image API calls), and two sample
+  `schedules` documents (one enabled, one disabled). Idempotent: every
+  seeded document uses a fixed id, so running it again replaces the same
+  records instead of duplicating them. Requires `MONGODB_URI` to be
+  reachable (see `.env.example`).
 
 ## Notes
 - **Env contract**: see `src/lib/env.ts` (`env()` / `requireEnv()`) and `.env.example` for the full
