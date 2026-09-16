@@ -291,8 +291,14 @@ function pipelineAgentsFromNetwork(
 }
 
 export const generatePost = inngest.createFunction(
-  { id: "generate-post", retries: 2 },
-  { event: "post/generate.requested" },
+  {
+    id: "generate-post",
+    retries: 2,
+    // Inngest v4's createFunction is 2-arg: the trigger lives in
+    // `triggers`, not a separate positional parameter (see
+    // tasks/README.md's "known pitfalls" list).
+    triggers: { event: "post/generate.requested" },
+  },
   async ({ event, step, attempt, maxAttempts }) => {
     const { postId, runId, topic, options } = event.data as GeneratePostRequested;
     const isFinalAttempt = attempt >= (maxAttempts ?? 3) - 1;
