@@ -32,13 +32,14 @@ Recent Next.js majors change APIs/conventions frequently (async request APIs —
 - **Design system:** implemented **directly in code** in T07 (Tailwind tokens + `src/components/ui`) from `DESIGN_PROMPT.md` — no external design tool/MCP is available on this account, so there is no separate mockup-import step. Managed centrally in T07; no other task redefines tokens.
 
 ## Env contract (`.env`, mirrored by `.env.example`)
-Read through `src/lib/env.ts` (`requireEnv` throws a named error when a required var is missing):
-- `OPENROUTER_API_KEY`, `LLM_MODEL=openai/gpt-5.5` — text generation for every agent, via OpenRouter.
+**Amended in T02 (per the reference build's proven working setup): all AI — text AND poster image — routes through OpenRouter.** Simpler than `PLAN.md`'s original separate-provider-key sketch: one key covers everything. Read through `src/lib/env.ts` (`requireEnv` throws a named error when a required var is missing):
+- `OPENROUTER_API_KEY` (accessor also accepts legacy alias `OPEN_ROUTER`) — the single key for every model call, text and image.
 - `SERPER_API_KEY` — web search.
-- `GEMINI_API_KEY` (default poster provider, `gemini-3.1-flash-image`) and/or `OPENAI_API_KEY` + `IMAGE_PROVIDER=openai` (alt poster provider, GPT Image) — per `PLAN.md`'s provider abstraction (`lib/image.ts`).
 - `MONGODB_URI` — persistence + GridFS poster bytes (local dev: `mongodb://127.0.0.1:27017/postforge`).
+- **Model tiers** (OpenRouter ids, env-overridable): `LLM_MODEL_SMART` (default `openai/gpt-5.5`), `LLM_MODEL_CHEAP` (default `google/gemini-2.5-flash-lite`), `LLM_MODEL` (general fallback), `IMAGE_MODEL` (default `google/gemini-3.1-flash-image`).
 - `INNGEST_EVENT_KEY` / `INNGEST_SIGNING_KEY` — only required for non-local Inngest.
-- If a subagent discovers a reason to change this contract (e.g. funneling images through OpenRouter too), that's an `assumption-broken`/`suggestion` report, not a silent change — the orchestrator decides.
+- T01's `.env.example` predates this amendment (separate `GEMINI_API_KEY`/`OPENAI_API_KEY`/`IMAGE_PROVIDER`) — **T02 updates `.env.example` and `src/lib/env.ts` to match this contract.**
+- If a subagent discovers a further reason to change this contract, that's an `assumption-broken`/`suggestion` report, not a silent change — the orchestrator decides.
 
 ## Stack — verify against live docs before use (never training-data memory)
 Next.js (App Router, TS) · React · Tailwind · Inngest + Inngest AgentKit · OpenRouter · Serper.dev · GridFS/MongoDB · Vitest.
