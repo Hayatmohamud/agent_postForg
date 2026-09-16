@@ -91,8 +91,8 @@ The finished design from Claude Cloud Design (`PostForge.dc.html`) is **its own 
 | [T01](T01-scaffolding.md) | Scaffolding, Inngest wiring & env contract | `done` | 0 | — | T02, T07 |
 | [T02](T02-foundation-libs.md) | Foundation libs: Mongo/GridFS, data model, adapters, settings | `done` | 1 | T01 | T03, T04, T05, T06, T14, T17 |
 | [T03](T03-agent-tools.md) | AgentKit tools (search/fetch/poster/save) | `done` | 2 | T02 | T04, T15, T17 |
-| [T04](T04-agents-and-router.md) | Six agents + deterministic router | `ready` | 3 | T02, T03 | T05, T18 |
-| [T05](T05-orchestration.md) | Durable orchestration (+telemetry, +subprogress) | `blocked` | 4 | T02, T04 | T06, T11, T14, T18 |
+| [T04](T04-agents-and-router.md) | Six agents + deterministic router | `done` | 3 | T02, T03 | T05, T18 |
+| [T05](T05-orchestration.md) | Durable orchestration (+telemetry, +subprogress) | `ready` | 4 | T02, T04 | T06, T11, T14, T18 |
 | [T06](T06-api-surface.md) | API surface (generate/posts/poster/stats/settings) | `blocked` | 5 | T02, T05 | T10, T11, T12, T13, T15, T18, T19 |
 | [T07](T07-design-system.md) | Design system — implement in code per DESIGN_PROMPT.md | `done` | 1 | T01 | T08, T09 |
 | [T08](T08-app-shell.md) | App shell, navigation & global states | `done` | 2 | T07 | T10, T11, T13, T14, T15 |
