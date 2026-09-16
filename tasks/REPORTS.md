@@ -84,6 +84,7 @@ _R-0002/R-0003 need the human (credentials) but do NOT block downstream code tas
 | R-0006 | T09 | info | T09 stopped its dev server with a broad `Get-Process -Name node \| Stop-Process -Force` (Windows), which is not scoped to its own process and could kill sibling worktrees' (T03/T08) dev servers on this shared machine | T03,T08 | false | resolved |
 | R-0007 | T03 | blocker | No SERPER_API_KEY/OPENROUTER_API_KEY/reachable MongoDB to live-verify web_search/generate_poster/save_post end-to-end | T04,T15,T17 | true | acknowledged |
 | R-0008 | T17 | new-requirement | Proposed `Schedule` shape (`{topic, cadence, enabled, nextRunAt, lastResult?, createdAt, updatedAt}`) seeded ahead of T14 | T14 | false | open |
+| R-0009 | T04 | blocker | No OPENROUTER_API_KEY/SERPER_API_KEY/MONGODB_URI to live-run buildNetwork(options).run(topic) end-to-end; router determinism fully verified in isolation (9/9 vitest cases, zero external services) | T05,T18 | true | acknowledged |
 
 ## Resolved reports
 _None yet — this is a fresh build. See "Known pitfalls from a prior build" in `README.md` for issues a previous implementation of this same plan hit and fixed; reference them, don't re-litigate them._
