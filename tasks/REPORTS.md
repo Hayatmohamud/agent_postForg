@@ -81,6 +81,7 @@ _R-0002/R-0003 need the human (credentials) but do NOT block downstream code tas
 | R-0003 | T02 | blocker | No `OPENROUTER_API_KEY` available to live-verify models.ts/image.ts against OpenRouter | T03,T04,T05 | true | acknowledged |
 | R-0004 | T02 | assumption-broken | OpenRouter's docs show a dedicated `/api/v1/images` endpoint, not the chat-completions `modalities` shape the BRD guessed; `image.ts` defensively tries both | T03 | false | open |
 | R-0005 | T07 | assumption-broken | Next.js reserves any `_`-prefixed route folder (always excluded from routing); gallery built at `/gallery` not the BRD's `/_gallery` | T08,T09,T10,T11,T12 | false | resolved |
+| R-0006 | T09 | info | T09 stopped its dev server with a broad `Get-Process -Name node \| Stop-Process -Force` (Windows), which is not scoped to its own process and could kill sibling worktrees' (T03/T08) dev servers on this shared machine | T03,T08 | false | open |
 
 ## Resolved reports
 _None yet — this is a fresh build. See "Known pitfalls from a prior build" in `README.md` for issues a previous implementation of this same plan hit and fixed; reference them, don't re-litigate them._
