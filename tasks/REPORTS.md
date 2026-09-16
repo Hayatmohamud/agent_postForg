@@ -72,11 +72,14 @@ Escalate (surface in the session, and via a push/Telegram notification if config
 ---
 
 ## Open reports
-_Non-blocking; no dependent tasks paused._
+_R-0002/R-0003 need the human (credentials) but do NOT block downstream code tasks — T03+ proceed on code-review verification and re-verify live once credentials land._
 
 | id | from | type | sev | summary | affects | needsHuman | status |
 |----|------|------|-----|---------|---------|-----------|--------|
 | R-0001 | T01 | info | Sandboxed agent shells block npm postinstall scripts, so bare `npx inngest-cli@latest dev` fails to fetch its binary in-agent (workaround documented); a normal local/CI environment is unaffected | T16 | false | open |
+| R-0002 | T02 | blocker | No local MongoDB reachable to live-verify mongo.ts/posts-repo.ts/settings-repo.ts | T03,T04,T05,T06,T14,T17 | true | acknowledged |
+| R-0003 | T02 | blocker | No `OPENROUTER_API_KEY` available to live-verify models.ts/image.ts against OpenRouter | T03,T04,T05 | true | acknowledged |
+| R-0004 | T02 | assumption-broken | OpenRouter's docs show a dedicated `/api/v1/images` endpoint, not the chat-completions `modalities` shape the BRD guessed; `image.ts` defensively tries both | T03 | false | open |
 
 ## Resolved reports
 _None yet — this is a fresh build. See "Known pitfalls from a prior build" in `README.md` for issues a previous implementation of this same plan hit and fixed; reference them, don't re-litigate them._

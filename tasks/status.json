@@ -22,8 +22,8 @@
   },
   "tasks": [
     { "id": "T01", "slug": "scaffolding", "title": "Project scaffolding, Inngest wiring & env contract", "status": "done", "wave": 0, "verify": "mixed", "dependsOn": [], "blocks": ["T02", "T07"] },
-    { "id": "T02", "slug": "foundation-libs", "title": "Foundation libraries: Mongo/GridFS, data model, GPT-5 & image adapters, settings store", "status": "in-progress", "wave": 1, "verify": "command", "dependsOn": ["T01"], "blocks": ["T03", "T04", "T05", "T06", "T14", "T17"] },
-    { "id": "T03", "slug": "agent-tools", "title": "AgentKit tools: web_search, fetch_url, generate_poster, save_post", "status": "blocked", "wave": 2, "verify": "command", "dependsOn": ["T02"], "blocks": ["T04", "T15", "T17"] },
+    { "id": "T02", "slug": "foundation-libs", "title": "Foundation libraries: Mongo/GridFS, data model, GPT-5 & image adapters, settings store", "status": "done", "wave": 1, "verify": "command", "dependsOn": ["T01"], "blocks": ["T03", "T04", "T05", "T06", "T14", "T17"], "note": "typecheck+build clean; code complete. Live Mongo/OpenRouter round-trips unverified pending credentials (R-0002, R-0003)." },
+    { "id": "T03", "slug": "agent-tools", "title": "AgentKit tools: web_search, fetch_url, generate_poster, save_post", "status": "ready", "wave": 2, "verify": "command", "dependsOn": ["T02"], "blocks": ["T04", "T15", "T17"] },
     { "id": "T04", "slug": "agents-and-router", "title": "Six agents + deterministic router network", "status": "blocked", "wave": 3, "verify": "command", "dependsOn": ["T02", "T03"], "blocks": ["T05", "T18"] },
     { "id": "T05", "slug": "orchestration", "title": "Durable orchestration: generatePost, per-stage persistence, telemetry, retries & failure", "status": "blocked", "wave": 4, "verify": "command", "dependsOn": ["T02", "T04"], "blocks": ["T06", "T11", "T14", "T18"] },
     { "id": "T06", "slug": "api-surface", "title": "API surface: generate, posts, poster streaming, stats, settings", "status": "blocked", "wave": 5, "verify": "command", "dependsOn": ["T02", "T05"], "blocks": ["T10", "T11", "T12", "T13", "T15", "T18", "T19"] },
