@@ -103,7 +103,7 @@ The finished design from Claude Cloud Design (`PostForge.dc.html`) is **its own 
 | [T13](T13-dashboard-library.md) | Dashboard + Library (browse & analytics) | `done` | 6 | T06, T08 | T16 |
 | [T14](T14-scheduled-cron.md) | Scheduled / cron management | `done` | 6 | T02, T05, T08 | T16 |
 | [T15](T15-settings.md) | Settings (status/test-connection, defaults) | `done` | 6 | T03, T06, T08 | T16 |
-| [T16](T16-verification.md) | README + end-to-end verification | `ready` | 8 | T09–T15, T17, T18, T19 | — |
+| [T16](T16-verification.md) | README + end-to-end verification | `in-review` | 8 | T09–T15, T17, T18, T19 | — |
 | [T17](T17-seed-data.md) | Seed / demo data & fixtures | `done` | 3 | T02, T03 | T16 |
 | [T18](T18-tests.md) | Automated test suite | `done` | 6 | T04, T05, T06 | T16 |
 | [T19](T19-rate-limit-dedupe.md) | Rate-limit + dedupe guard | `done` | 6 | T06 | T16 |
