@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { usePostPolling } from "@/hooks/usePostPolling";
+import { PostView } from "@/components/PostView";
 import { usePrefersReducedMotion } from "@/lib/useReducedMotion";
 import { AGENT_ORDER, type AgentKey, type AgentNodeState } from "@/components/pipeline";
 import { Badge, Button, Card, ErrorState, Skeleton, StatusBadge } from "@/components/ui";
@@ -22,8 +23,8 @@ function isTerminal(status: PostDetail["status"]): boolean {
  * 6): polls this post's live state and renders the 6-stage pipeline, an
  * active-stage detail panel, per-stage/overall timers, and the failed state.
  *
- * Once `status === "done"` this hands off to a stub — T12 (next wave) owns
- * the real finished-post view; this task only needs to branch correctly.
+ * Once `status === "done"` this hands off to `PostView` (T12), the real
+ * finished-article view — this page only owns branching to it correctly.
  */
 export default function PostPipelinePage() {
   const params = useParams<{ id: string }>();
@@ -92,7 +93,7 @@ export default function PostPipelinePage() {
   }
 
   if (post.status === "done") {
-    return <div>Post complete — detail view coming in T12</div>;
+    return <PostView post={post} />;
   }
 
   const stepperStages: StepperStage[] = AGENT_ORDER.map((agent) => {
