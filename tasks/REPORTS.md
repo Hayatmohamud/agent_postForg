@@ -87,6 +87,7 @@ _R-0002/R-0003 need the human (credentials) but do NOT block downstream code tas
 | R-0009 | T04 | blocker | No OPENROUTER_API_KEY/SERPER_API_KEY/MONGODB_URI to live-run buildNetwork(options).run(topic) end-to-end; router determinism fully verified in isolation (9/9 vitest cases, zero external services) | T05,T18 | true | acknowledged |
 | R-0010 | T05 | blocker | No credentials to live-verify generatePost's full 6-stage run; event contract + error path partially live-verified without keys | T06,T11,T14,T18 | true | acknowledged |
 | R-0011 | T05 | decision-needed | T04's agents (merged) gracefully degrade tool/model errors instead of throwing, so "bad SERPER_API_KEY → status:failed" (a T05 acceptance criterion) will likely never fire — a bad key produces a degraded-but-`done` post instead | T04,T06,T11,T16,T18 | true | resolved |
+| R-0012 | T06 | blocker | No credentials to live-verify full CRUD/poster/stats/settings round-trips; Mongo-independent paths (validation, 404s, error shape) live-verified | T10,T11,T12,T13,T15,T18,T19 | true | acknowledged |
 
 ## Resolved reports
 

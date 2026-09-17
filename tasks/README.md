@@ -93,20 +93,20 @@ The finished design from Claude Cloud Design (`PostForge.dc.html`) is **its own 
 | [T03](T03-agent-tools.md) | AgentKit tools (search/fetch/poster/save) | `done` | 2 | T02 | T04, T15, T17 |
 | [T04](T04-agents-and-router.md) | Six agents + deterministic router | `done` | 3 | T02, T03 | T05, T18 |
 | [T05](T05-orchestration.md) | Durable orchestration (+telemetry, +subprogress) | `done` | 4 | T02, T04 | T06, T11, T14, T18 |
-| [T06](T06-api-surface.md) | API surface (generate/posts/poster/stats/settings) | `ready` | 5 | T02, T05 | T10, T11, T12, T13, T15, T18, T19 |
+| [T06](T06-api-surface.md) | API surface (generate/posts/poster/stats/settings) | `done` | 5 | T02, T05 | T10, T11, T12, T13, T15, T18, T19 |
 | [T07](T07-design-system.md) | Design system — implement in code per DESIGN_PROMPT.md | `done` | 1 | T01 | T08, T09 |
 | [T08](T08-app-shell.md) | App shell, navigation & global states | `done` | 2 | T07 | T10, T11, T13, T14, T15 |
 | [T09](T09-public-surface.md) | Public surface — landing + auth (stub) | `done` | 2 | T07 | T16 |
-| [T10](T10-new-post.md) | New Post screen + trigger flow | `blocked` | 6 | T06, T08 | T16 |
-| [T11](T11-pipeline-showcase.md) | Pipeline showcase (hero) + live polling | `blocked` | 6 | T05, T06, T08 | T12, T16 |
+| [T10](T10-new-post.md) | New Post screen + trigger flow | `ready` | 6 | T06, T08 | T16 |
+| [T11](T11-pipeline-showcase.md) | Pipeline showcase (hero) + live polling | `ready` | 6 | T05, T06, T08 | T12, T16 |
 | [T12](T12-post-detail.md) | Post detail (finished article) | `blocked` | 7 | T06, T11 | T16 |
-| [T13](T13-dashboard-library.md) | Dashboard + Library (browse & analytics) | `blocked` | 6 | T06, T08 | T16 |
-| [T14](T14-scheduled-cron.md) | Scheduled / cron management | `blocked` | 6 | T02, T05, T08 | T16 |
-| [T15](T15-settings.md) | Settings (status/test-connection, defaults) | `blocked` | 6 | T03, T06, T08 | T16 |
+| [T13](T13-dashboard-library.md) | Dashboard + Library (browse & analytics) | `ready` | 6 | T06, T08 | T16 |
+| [T14](T14-scheduled-cron.md) | Scheduled / cron management | `ready` | 6 | T02, T05, T08 | T16 |
+| [T15](T15-settings.md) | Settings (status/test-connection, defaults) | `ready` | 6 | T03, T06, T08 | T16 |
 | [T16](T16-verification.md) | README + end-to-end verification | `blocked` | 8 | T09–T15, T17, T18, T19 | — |
 | [T17](T17-seed-data.md) | Seed / demo data & fixtures | `done` | 3 | T02, T03 | T16 |
-| [T18](T18-tests.md) | Automated test suite | `blocked` | 6 | T04, T05, T06 | T16 |
-| [T19](T19-rate-limit-dedupe.md) | Rate-limit + dedupe guard | `blocked` | 6 | T06 | T16 |
+| [T18](T18-tests.md) | Automated test suite | `ready` | 6 | T04, T05, T06 | T16 |
+| [T19](T19-rate-limit-dedupe.md) | Rate-limit + dedupe guard | `ready` | 6 | T06 | T16 |
 
 _Keep this table and `status.json` in sync as tasks progress._
 
