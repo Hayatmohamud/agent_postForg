@@ -9,7 +9,7 @@
  */
 
 import { Collection, ObjectId } from "mongodb";
-import { getDb } from "./mongo";
+import { getDb, getBucket } from "./mongo";
 import {
   initialStages,
   type Finding,
@@ -289,4 +289,34 @@ export async function upsertFinalPost(
     throw new Error(`upsertFinalPost: post not found for runId ${runId} after upsert`);
   }
   return doc;
+}
+
+/**
+ * Deletes every post document AND its GridFS poster bytes (T15 danger-zone
+ * "delete all posts"). Mirrors the same best-effort GridFS cleanup pattern
+ * as `DELETE /api/posts/[id]` (T06) — a missing/already-gone poster file
+ * for one post never blocks deleting the rest. Returns the count of post
+ * documents deleted.
+ */
+export async function deleteAllPosts(): Promise<{ deletedCount: number }> {
+  const posts = await postsCollection();
+  const bucket = await getBucket();
+
+  const cursor = posts.find({ posterImageId: { $exists: true, $ne: undefined } }, {
+    projection: { posterImageId: 1 },
+  });
+  for await (const doc of cursor) {
+    const posterImageId = (doc as { posterImageId?: string }).posterImageId;
+    if (posterImageId && ObjectId.isValid(posterImageId)) {
+      try {
+        await bucket.delete(new ObjectId(posterImageId));
+      } catch {
+        // Best-effort: an already-missing/corrupt GridFS file must never
+        // block deleting the post records.
+      }
+    }
+  }
+
+  const result = await posts.deleteMany({});
+  return { deletedCount: result.deletedCount ?? 0 };
 }
