@@ -27,7 +27,7 @@ Depends on every leaf task, which transitively cover the entire backend. Validat
    - Submit a topic → watch the live pipeline advance in the UI **and** as durable steps in the Inngest dashboard.
    - Confirm the finished post + poster + cited sources render on `/posts/[id]`.
    - Mongo doc `status:"done"`; poster served from GridFS; sources + verification present.
-   - **Failure path:** set a bad `SERPER_API_KEY` → Inngest retries → doc `status:"failed"` + UI error → restore key → a fresh run recovers.
+   - **Failure path (amended per R-0011):** a bad `SERPER_API_KEY` does NOT fail the run by design — T04's agents gracefully degrade tool errors into a lower-quality-but-`done` post (confirmed human decision, see `REPORTS.md`). Demonstrate the real `status:"failed"` path with a genuinely fatal fault instead — e.g. an unreachable `MONGODB_URI` — then restore it and confirm a fresh run recovers.
    - **Memory:** a second topic appears in the library; dedupe (T19) behaves.
    - **Cron:** a scheduled run fires and produces a post.
    - **Rate-limit:** rapid repeat submits are throttled/deduped.

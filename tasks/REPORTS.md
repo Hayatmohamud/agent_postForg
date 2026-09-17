@@ -86,11 +86,10 @@ _R-0002/R-0003 need the human (credentials) but do NOT block downstream code tas
 | R-0008 | T17 | new-requirement | Proposed `Schedule` shape (`{topic, cadence, enabled, nextRunAt, lastResult?, createdAt, updatedAt}`) seeded ahead of T14 | T14 | false | open |
 | R-0009 | T04 | blocker | No OPENROUTER_API_KEY/SERPER_API_KEY/MONGODB_URI to live-run buildNetwork(options).run(topic) end-to-end; router determinism fully verified in isolation (9/9 vitest cases, zero external services) | T05,T18 | true | acknowledged |
 | R-0010 | T05 | blocker | No credentials to live-verify generatePost's full 6-stage run; event contract + error path partially live-verified without keys | T06,T11,T14,T18 | true | acknowledged |
-| R-0011 | T05 | decision-needed | T04's agents (merged) gracefully degrade tool/model errors instead of throwing, so "bad SERPER_API_KEY → status:failed" (a T05 acceptance criterion) will likely never fire — a bad key produces a degraded-but-`done` post instead | T04,T06,T11,T16,T18 | **true** | **ESCALATED — see below** |
+| R-0011 | T05 | decision-needed | T04's agents (merged) gracefully degrade tool/model errors instead of throwing, so "bad SERPER_API_KEY → status:failed" (a T05 acceptance criterion) will likely never fire — a bad key produces a degraded-but-`done` post instead | T04,T06,T11,T16,T18 | true | resolved |
 
 ## Resolved reports
-_None yet — this is a fresh build. See "Known pitfalls from a prior build" in `README.md` for issues a previous implementation of this same plan hit and fixed; reference them, don't re-litigate them._
 
 | id | from | type | summary | resolution |
 |----|------|------|---------|------------|
-| — | — | — | — | — |
+| R-0011 | T05 | decision-needed | Graceful degradation vs. hard failure on a bad SERPER_API_KEY | **Human decision: keep graceful degradation** (a temporary search-API issue should still produce a usable, lower-quality post rather than a wasted run) — intended behavior, no T04 code change. **T16's end-to-end verification must use a genuinely fatal fault (e.g. an unreachable MongoDB or a malformed model response) to demonstrate the real `status:"failed"` path**, not a bad SERPER_API_KEY. |
