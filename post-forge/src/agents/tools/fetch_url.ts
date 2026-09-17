@@ -63,7 +63,14 @@ function isPrivateIPv6(ip: string): boolean {
 }
 
 /** Returns true if `hostname` is (or resolves to) a private/loopback/link-local address. */
-async function isBlockedHost(hostname: string): Promise<boolean> {
+async function isBlockedHost(rawHostname: string): Promise<boolean> {
+  // WHATWG URL.hostname keeps the brackets on an IPv6 literal (e.g. "[::1]"
+  // for http://[::1]/) — strip them before feeding net.isIP/isPrivateIPv6,
+  // which both expect the bare address form.
+  const hostname =
+    rawHostname.startsWith("[") && rawHostname.endsWith("]")
+      ? rawHostname.slice(1, -1)
+      : rawHostname;
   const lower = hostname.toLowerCase();
   if (lower === "localhost" || lower.endsWith(".localhost")) return true;
 
