@@ -75,7 +75,7 @@ import { webSearchTool } from "@/agents/tools/web_search";
 import { generatePosterTool } from "@/agents/tools/generate_poster";
 import { savePostTool } from "@/agents/tools/save_post";
 import { createPost, getPostById, updateStage, appendSubProgress } from "@/lib/posts-repo";
-import type { NetworkState, Stage } from "@/lib/state";
+import type { NetworkState, PostStatus, Stage } from "@/lib/state";
 
 function stubAgent(name: string): Agent<NetworkState> {
   return { name } as unknown as Agent<NetworkState>;
@@ -90,7 +90,7 @@ const agents: PipelineAgents = {
   publisher: stubAgent("publisher"),
 };
 
-const STAGE_TO_STATUS: Record<Stage, string> = {
+const STAGE_TO_STATUS: Record<Stage, PostStatus> = {
   research: "researching",
   verify: "verifying",
   write: "writing",

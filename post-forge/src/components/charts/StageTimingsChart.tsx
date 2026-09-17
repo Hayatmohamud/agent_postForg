@@ -44,7 +44,7 @@ export function StageTimingsChart({ avgStageTimingsMs, height = 240 }: StageTimi
         <Tooltip
           contentStyle={tooltipContentStyle}
           labelStyle={tooltipLabelStyle}
-          formatter={(value: number) => [formatDurationMs(value), "Avg time"]}
+          formatter={(value) => [formatDurationMs(Number(value)), "Avg time"] as [string, string]}
           cursor={{ fill: "rgba(0,0,0,0.03)" }}
         />
         <Bar dataKey="ms" fill={BRAND} radius={[4, 4, 0, 0]} maxBarSize={40} />

@@ -47,7 +47,7 @@ export function TokensByAgentChart({ tokensByAgent, height = 240 }: TokensByAgen
         <Tooltip
           contentStyle={tooltipContentStyle}
           labelStyle={tooltipLabelStyle}
-          formatter={(value: number) => [formatCount(value), "Tokens"]}
+          formatter={(value) => [formatCount(Number(value)), "Tokens"] as [string, string]}
           cursor={{ fill: "rgba(0,0,0,0.03)" }}
         />
         <Bar dataKey="tokens" radius={[4, 4, 0, 0]} maxBarSize={40}>

@@ -18,8 +18,8 @@
  * `SingleOrArray<Trigger>` (a single trigger object OR an array — both are
  * valid; `functions.ts`'s `generatePost` already uses the single-object form
  * for an event trigger). A cron trigger is `{ cron: string }` (a plain cron
- * expression string, standard 5-field syntax, e.g. "*/15 * * * *" for
- * every-15-minutes) rather than the older 3-arg `(config, {cron}, handler)`
+ * expression string, standard 5-field syntax, e.g. every-15-minutes (see
+ * CRON_INTERVAL below) rather than the older 3-arg `(config, {cron}, handler)`
  * shape older docs/training data describe.
  *
  * ---------------------------------------------------------------------

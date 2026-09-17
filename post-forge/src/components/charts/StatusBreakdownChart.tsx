@@ -46,7 +46,7 @@ export function StatusBreakdownChart({ totals, height = 220 }: StatusBreakdownCh
         <Tooltip
           contentStyle={tooltipContentStyle}
           labelStyle={tooltipLabelStyle}
-          formatter={(value: number) => [String(value), "Posts"]}
+          formatter={(value) => [String(value), "Posts"] as [string, string]}
           cursor={{ fill: "rgba(0,0,0,0.03)" }}
         />
         <Bar dataKey="value" radius={[4, 4, 4, 4]} maxBarSize={28}>

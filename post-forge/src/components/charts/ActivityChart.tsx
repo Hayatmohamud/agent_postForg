@@ -48,8 +48,8 @@ export function ActivityChart({ activityByDay, height = 240 }: ActivityChartProp
         <Tooltip
           contentStyle={tooltipContentStyle}
           labelStyle={tooltipLabelStyle}
-          labelFormatter={(label: string) => shortDate(label)}
-          formatter={(value: number) => [String(value), "Posts"]}
+          labelFormatter={(label) => shortDate(String(label))}
+          formatter={(value) => [String(value), "Posts"] as [string, string]}
         />
         <Area
           type="monotone"
