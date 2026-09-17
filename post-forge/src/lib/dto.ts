@@ -51,6 +51,18 @@ export type GenerateResponse = {
   runId: string;
 };
 
+/**
+ * Response body when T19's rate-limit/dedupe guard blocks a
+ * `POST /api/generate` request (HTTP 429). Deliberately just `ErrorResponse`
+ * plus an optional `existingPostId` — not a separate shape — so callers
+ * (T10's New Post UI) can always read `error.message` generically and only
+ * branch on `existingPostId` to link to the pre-existing post when
+ * `error.code === "deduped"`.
+ */
+export type GenerateBlockedResponse = ErrorResponse & {
+  existingPostId?: string;
+};
+
 // ---------------------------------------------------------------------------
 // GET /api/posts (list)
 // ---------------------------------------------------------------------------

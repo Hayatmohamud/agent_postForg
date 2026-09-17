@@ -28,7 +28,9 @@ export type EnvVarName =
   | "SERPER_API_KEY"
   | "MONGODB_URI"
   | "INNGEST_EVENT_KEY"
-  | "INNGEST_SIGNING_KEY";
+  | "INNGEST_SIGNING_KEY"
+  | "MAX_INFLIGHT_RUNS"
+  | "DEDUPE_WINDOW_HOURS";
 
 export class MissingEnvError extends Error {
   constructor(name: EnvVarName) {
@@ -66,4 +68,39 @@ export function requireOpenRouterKey(): string {
     throw new MissingEnvError("OPENROUTER_API_KEY");
   }
   return value;
+}
+
+// ---------------------------------------------------------------------------
+// T19: rate-limit / dedupe guard thresholds — optional, defaulted, never
+// throw (unlike `requireEnv`) since the guard should degrade to sane
+// built-in defaults rather than break `POST /api/generate` if unconfigured.
+// ---------------------------------------------------------------------------
+
+const DEFAULT_MAX_INFLIGHT_RUNS = 3;
+const DEFAULT_DEDUPE_WINDOW_HOURS = 24;
+
+/** Parses a positive-integer-ish env var, falling back to `fallback` if unset/invalid. */
+function positiveNumberOr(name: EnvVarName, fallback: number): number {
+  const raw = env(name);
+  if (raw === undefined) return fallback;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+/**
+ * Max number of posts allowed in a non-terminal (not `done`/`failed`) status
+ * at once before `POST /api/generate` starts refusing new runs. Defaults to
+ * {@link DEFAULT_MAX_INFLIGHT_RUNS}.
+ */
+export function maxInflightRuns(): number {
+  return positiveNumberOr("MAX_INFLIGHT_RUNS", DEFAULT_MAX_INFLIGHT_RUNS);
+}
+
+/**
+ * Lookback window (in hours) for the duplicate-topic dedupe check: a `done`
+ * or in-flight post with the same normalized topic created within this many
+ * hours blocks a new run. Defaults to {@link DEFAULT_DEDUPE_WINDOW_HOURS}.
+ */
+export function dedupeWindowHours(): number {
+  return positiveNumberOr("DEDUPE_WINDOW_HOURS", DEFAULT_DEDUPE_WINDOW_HOURS);
 }

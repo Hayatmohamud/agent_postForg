@@ -68,6 +68,49 @@ export async function getPostByRunId(runId: string): Promise<Post | null> {
   return posts.findOne({ runId });
 }
 
+/** Statuses that mean a run has finished (successfully or not). */
+const TERMINAL_STATUSES: PostStatus[] = ["done", "failed"];
+
+/**
+ * Counts posts whose status is not yet terminal (`done`/`failed`) — i.e.
+ * still actively running a generation. Used by T19's concurrency/quota
+ * guard on `POST /api/generate`.
+ */
+export async function countInFlightPosts(): Promise<number> {
+  const posts = await postsCollection();
+  return posts.countDocuments({ status: { $nin: TERMINAL_STATUSES } });
+}
+
+/** Lightweight projection of a post used by T19's dedupe guard. */
+export type PostDedupeProjection = {
+  id: string;
+  topic: string;
+  status: PostStatus;
+  createdAt: Date;
+};
+
+/**
+ * Fetches `{id, topic, status, createdAt}` for every post created at or
+ * after `since`. Used by T19's dedupe guard, which does the actual
+ * topic-normalization matching in pure JS (`src/lib/generation-guards.ts`)
+ * rather than trying to express normalized-text matching as a Mongo query.
+ */
+export async function findPostsSince(since: Date): Promise<PostDedupeProjection[]> {
+  const posts = await postsCollection();
+  const docs = await posts
+    .find(
+      { createdAt: { $gte: since } },
+      { projection: { topic: 1, status: 1, createdAt: 1 } }
+    )
+    .toArray();
+  return docs.map((doc) => ({
+    id: doc._id.toString(),
+    topic: doc.topic,
+    status: doc.status,
+    createdAt: doc.createdAt,
+  }));
+}
+
 export type ListPostsQuery = {
   search?: string;
   status?: PostStatus;

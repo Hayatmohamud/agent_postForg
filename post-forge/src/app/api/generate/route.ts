@@ -11,7 +11,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { ZodError } from "zod";
-import { generateRequestSchema, createGenerationRun } from "./core";
+import { generateRequestSchema, createGenerationRun, GenerationBlockedError } from "./core";
 import { errorResponse, zodErrorMessage } from "@/lib/http";
 import type { GenerateResponse } from "@/lib/dto";
 
@@ -38,6 +38,12 @@ export async function POST(req: NextRequest) {
     const response: GenerateResponse = result;
     return NextResponse.json(response, { status: 201 });
   } catch (err) {
+    if (err instanceof GenerationBlockedError) {
+      // T19: rate-limit/dedupe guard blocked this request. Body already
+      // matches `ErrorResponse` + optional `existingPostId` (see
+      // `GenerateBlockedResponse` in dto.ts) for the New Post UI (T10).
+      return NextResponse.json(err.response, { status: 429 });
+    }
     const message = err instanceof Error ? err.message : "Failed to start generation run";
     return errorResponse(500, message, "generate_failed");
   }
