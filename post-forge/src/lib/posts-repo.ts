@@ -335,6 +335,26 @@ export async function upsertFinalPost(
 }
 
 /**
+ * Updates a done post's editable content (title/body) — the user-facing
+ * "Edit" action on the finished-post view. Scoped `$set` on only the fields
+ * given, same pattern as the other mutating helpers here.
+ */
+export async function updatePostContent(
+  id: string | ObjectId,
+  fields: { title?: string; finalPost?: string }
+): Promise<Post | null> {
+  const posts = await postsCollection();
+  const now = new Date();
+
+  const set: Record<string, unknown> = { updatedAt: now };
+  if (fields.title !== undefined) set.title = fields.title;
+  if (fields.finalPost !== undefined) set.finalPost = fields.finalPost;
+
+  await posts.updateOne({ _id: toObjectId(id) }, { $set: set });
+  return posts.findOne({ _id: toObjectId(id) });
+}
+
+/**
  * Deletes every post document AND its GridFS poster bytes (T15 danger-zone
  * "delete all posts"). Mirrors the same best-effort GridFS cleanup pattern
  * as `DELETE /api/posts/[id]` (T06) — a missing/already-gone poster file

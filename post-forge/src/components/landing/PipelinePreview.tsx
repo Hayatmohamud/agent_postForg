@@ -55,7 +55,7 @@ export function PipelinePreview({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "w-full rounded-[var(--radius-2xl)] border border-border bg-white p-6 shadow-[var(--shadow-lg)] sm:p-8",
+        "w-full rounded-[var(--radius-2xl)] border border-border bg-surface p-6 shadow-[var(--shadow-lg)] sm:p-8",
         className,
       )}
       role="img"

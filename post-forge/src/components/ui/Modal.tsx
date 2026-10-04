@@ -39,9 +39,14 @@ export function Modal({ open, onClose, title, children, footer, variant = "modal
   const isDrawer = variant === "drawer";
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex" role="presentation">
+    // React portals still bubble synthetic events up the *React* tree (not
+    // just the DOM tree), so a modal rendered from inside a clickable
+    // ancestor (e.g. a card with its own onClick) would otherwise trigger
+    // that ancestor's handler on every click here, including Cancel/Confirm.
+    <div className="fixed inset-0 z-50 flex" role="presentation" onClick={(e) => e.stopPropagation()}>
+      {/* Fixed scrim regardless of app theme, not the theme-reactive gray-900 token. */}
       <div
-        className="absolute inset-0 animate-fade-in bg-gray-900/40"
+        className="absolute inset-0 animate-fade-in bg-black/40"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -50,7 +55,7 @@ export function Modal({ open, onClose, title, children, footer, variant = "modal
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "relative flex flex-col bg-white shadow-[var(--shadow-xl)]",
+          "relative flex flex-col bg-surface shadow-[var(--shadow-xl)]",
           isDrawer
             ? "ml-auto h-full w-full max-w-md animate-scale-in"
             : "m-auto max-h-[85vh] w-full max-w-lg animate-scale-in rounded-[var(--radius-xl)]",

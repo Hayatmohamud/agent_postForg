@@ -1,15 +1,16 @@
 /**
  * env.ts fail-fast tests (T18 BRD §4.4).
  *
- * Pure unit tests over `env()`/`requireEnv()`/`requireOpenRouterKey()` --
- * no network, no Mongo. Uses `vi.stubEnv`/`vi.unstubAllEnvs` (vitest 5's
- * documented env-mocking API, https://vitest.dev/api/vi.html#vi-stubenv)
- * rather than mutating `process.env` directly, so each test's env changes
- * are automatically reverted.
+ * Pure unit tests over `env()`/`requireEnv()`/`requireGeminiKey()`/
+ * `requireReplicateKey()` -- no network, no Mongo. Uses
+ * `vi.stubEnv`/`vi.unstubAllEnvs` (vitest 5's documented env-mocking API,
+ * https://vitest.dev/api/vi.html#vi-stubenv) rather than mutating
+ * `process.env` directly, so each test's env changes are automatically
+ * reverted.
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { env, requireEnv, requireOpenRouterKey, MissingEnvError } from "./env";
+import { env, requireEnv, requireGeminiKey, requireReplicateKey, MissingEnvError } from "./env";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -58,28 +59,38 @@ describe("requireEnv()", () => {
   });
 });
 
-describe("requireOpenRouterKey()", () => {
-  it("throws MissingEnvError named OPENROUTER_API_KEY when neither var is set", () => {
-    delete process.env.OPENROUTER_API_KEY;
-    delete process.env.OPEN_ROUTER;
+describe("requireGeminiKey()", () => {
+  it("throws MissingEnvError named GEMINI_API_KEY when unset", () => {
+    delete process.env.GEMINI_API_KEY;
     try {
-      requireOpenRouterKey();
-      throw new Error("expected requireOpenRouterKey to throw");
+      requireGeminiKey();
+      throw new Error("expected requireGeminiKey to throw");
     } catch (err) {
       expect(err).toBeInstanceOf(MissingEnvError);
-      expect((err as Error).message).toContain("OPENROUTER_API_KEY");
+      expect((err as Error).message).toContain("GEMINI_API_KEY");
     }
   });
 
-  it("accepts OPENROUTER_API_KEY", () => {
-    vi.stubEnv("OPENROUTER_API_KEY", "sk-primary");
-    delete process.env.OPEN_ROUTER;
-    expect(requireOpenRouterKey()).toBe("sk-primary");
+  it("returns the value when set", () => {
+    vi.stubEnv("GEMINI_API_KEY", "sk-gemini");
+    expect(requireGeminiKey()).toBe("sk-gemini");
+  });
+});
+
+describe("requireReplicateKey()", () => {
+  it("throws MissingEnvError named REPLICATE_API_KEY when unset", () => {
+    delete process.env.REPLICATE_API_KEY;
+    try {
+      requireReplicateKey();
+      throw new Error("expected requireReplicateKey to throw");
+    } catch (err) {
+      expect(err).toBeInstanceOf(MissingEnvError);
+      expect((err as Error).message).toContain("REPLICATE_API_KEY");
+    }
   });
 
-  it("falls back to the legacy OPEN_ROUTER alias", () => {
-    delete process.env.OPENROUTER_API_KEY;
-    vi.stubEnv("OPEN_ROUTER", "sk-legacy");
-    expect(requireOpenRouterKey()).toBe("sk-legacy");
+  it("returns the value when set", () => {
+    vi.stubEnv("REPLICATE_API_KEY", "r8_test");
+    expect(requireReplicateKey()).toBe("r8_test");
   });
 });

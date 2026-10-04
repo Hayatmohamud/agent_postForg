@@ -53,9 +53,9 @@ export type StageState = {
 
 /** Per-run generation options; every field is an optional override. */
 export type GenerationOptions = {
-  /** Text model override (an OpenRouter model id). */
+  /** Text model override (a Gemini model id). */
   model?: string;
-  /** Poster image model override (an OpenRouter model id). */
+  /** Poster image model override (a Replicate model id). */
   imageModel?: string;
   tone?: string;
   length?: "short" | "medium" | "long";
@@ -83,6 +83,10 @@ export type Post = {
   finalPost?: string;
   sources: { title: string; url: string }[];
   posterImageId?: string;
+  /** True when illustration was attempted, permanently failed (e.g. the image
+   *  provider is unreachable or out of quota), and the run proceeded to
+   *  publish without a poster rather than failing the whole post. */
+  posterSkipped?: boolean;
   options: GenerationOptions;
   telemetry: {
     tokensByAgent: Record<string, number>;
@@ -105,6 +109,7 @@ export type NetworkState = {
   finalPost?: string;
   title?: string;
   posterImageId?: string;
+  posterSkipped?: boolean;
   published?: boolean;
   postId?: string;
   runId: string;

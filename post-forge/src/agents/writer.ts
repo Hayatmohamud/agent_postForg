@@ -16,9 +16,9 @@ import {
 } from "./shared";
 
 const LENGTH_GUIDANCE: Record<string, string> = {
-  short: "About 100-150 words.",
-  medium: "About 250-400 words.",
-  long: "About 500-800 words.",
+  short: "About 300-450 words.",
+  medium: "About 600-900 words.",
+  long: "About 1000-1400 words.",
 };
 
 export function createWriterAgent(model: TextModel): Agent<NetworkState> {
@@ -35,13 +35,13 @@ export function createWriterAgent(model: TextModel): Agent<NetworkState> {
 
       return `You are the Writer agent in an autonomous content-generation pipeline.
 
-Write a social/blog post about the given topic (the user message), using ONLY the following verified findings as your factual basis — do not introduce claims that aren't supported by them:
+Write a full, substantial blog post about the given topic (the user message), using ONLY the following verified findings as your factual basis — do not introduce new facts, numbers, or claims that aren't supported by them:
 ${JSON.stringify(findings, null, 2)}
 
 Tone: ${tone}
 Length: ${length}
 
-Respond with ONLY the post body text (plain prose, no JSON, no markdown headers, no code fences). Every claim you make must trace back to one of the findings above.`;
+Don't just restate the findings as a terse list. For each one, explain it in your own words, add context on why it matters, connect it to the others, and unpack its implications for the reader — depth and elaboration, not new facts. Structure it like a real article: a strong opening hook, well-developed body paragraphs, and a closing thought. Respond with ONLY the post body text (plain prose, no JSON, no markdown headers, no code fences). Every factual claim you make must still trace back to one of the findings above.`;
     },
     lifecycle: {
       onResponse: ({ agent, result }) => stripUnknownToolCalls(agent, result),

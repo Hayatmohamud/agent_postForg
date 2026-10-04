@@ -3,10 +3,17 @@
  * Tool: `generate_poster`, which writes `state.data.posterImageId` itself
  * (it mutates `network.state.data` directly — see tools/generate_poster.ts).
  *
- * Graceful degradation: if the model never successfully calls the tool
- * after `MAX_STAGE_ATTEMPTS`, the agent invokes the tool's handler directly
- * with a deterministic prompt derived from the final post, so a weak model
- * skipping the tool call doesn't stall the pipeline forever.
+ * Graceful degradation, two layers:
+ * 1. If the model never successfully calls the tool after
+ *    `MAX_STAGE_ATTEMPTS`, the agent invokes the tool's handler directly
+ *    with a deterministic prompt derived from the final post, so a weak
+ *    model skipping the tool call doesn't stall the pipeline forever.
+ * 2. If that direct call *also* throws (the image provider itself is down
+ *    or out of quota — a real, permanent failure, not a model-quality
+ *    issue), `state.posterSkipped` is set so `routeNext` moves on to
+ *    publish instead of retrying forever into the network's `maxIter`
+ *    safety cap. The post still completes and publishes, just without a
+ *    poster image (per explicit product decision — see CLAUDE.md).
  */
 
 import { createAgent, type Agent } from "@inngest/agent-kit";
@@ -61,8 +68,11 @@ Write a short (1-2 sentence), vivid, concrete image prompt capturing the essence
               { agent, network, step: undefined }
             );
           } catch {
-            // Leave posterImageId unset; the router will keep this stage
-            // pending, bounded by the network's own maxIter safety cap.
+            // The image provider itself failed (down/out of quota) rather
+            // than the model just missing the tool call — this won't fix
+            // itself on a retry, so skip illustration and let the run
+            // finish and publish without a poster.
+            state.posterSkipped = true;
           }
         }
         return result;

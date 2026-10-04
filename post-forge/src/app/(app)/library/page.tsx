@@ -147,7 +147,7 @@ function LibraryInner() {
                 type="date"
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
-                className="h-10 rounded-[var(--radius-md)] border border-border-strong bg-white px-3 text-sm text-gray-900 shadow-[var(--shadow-xs)]"
+                className="h-10 rounded-[var(--radius-md)] border border-border-strong bg-surface px-3 text-sm text-gray-900 shadow-[var(--shadow-xs)]"
               />
             </label>
             <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700">
@@ -156,13 +156,13 @@ function LibraryInner() {
                 type="date"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                className="h-10 rounded-[var(--radius-md)] border border-border-strong bg-white px-3 text-sm text-gray-900 shadow-[var(--shadow-xs)]"
+                className="h-10 rounded-[var(--radius-md)] border border-border-strong bg-surface px-3 text-sm text-gray-900 shadow-[var(--shadow-xs)]"
               />
             </label>
             <div
               role="group"
               aria-label="View"
-              className="flex h-10 items-center gap-0.5 rounded-[var(--radius-md)] border border-border-strong bg-white p-0.5"
+              className="flex h-10 items-center gap-0.5 rounded-[var(--radius-md)] border border-border-strong bg-surface p-0.5"
             >
               <button
                 type="button"
@@ -242,13 +242,13 @@ function LibraryInner() {
           {view === "grid" ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {state.data.items.map((post) => (
-                <PostCard key={post.id} post={post} />
+                <PostCard key={post.id} post={post} onDeleted={load} />
               ))}
             </div>
           ) : (
             <div className="space-y-3">
               {state.data.items.map((post) => (
-                <PostRow key={post.id} post={post} />
+                <PostRow key={post.id} post={post} onDeleted={load} />
               ))}
             </div>
           )}

@@ -1,5 +1,5 @@
 /**
- * `generate_poster` tool tests (T18 BRD §4.3): the OpenRouter image call is
+ * `generate_poster` tool tests (T18 BRD §4.3): the Replicate image call is
  * mocked (`@/lib/image`'s `generatePoster`); GridFS is exercised against a
  * minimal in-memory fake bucket (see the Mongo-strategy note in
  * `src/lib/posts-repo.test.ts` / `tasks/reports.jsonl` for why this suite
@@ -94,7 +94,7 @@ describe("generate_poster tool", () => {
   });
 
   it("wraps an image-generation failure in a named GeneratePosterToolError", async () => {
-    vi.mocked(generatePoster).mockRejectedValue(new Error("OpenRouter 500"));
+    vi.mocked(generatePoster).mockRejectedValue(new Error("Replicate 500"));
     const ctx = fakeNetwork({});
     await expect(
       (generatePosterTool.handler as (args: unknown, ctx: unknown) => Promise<unknown>)(

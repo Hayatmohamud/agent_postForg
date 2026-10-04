@@ -28,7 +28,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           aria-invalid={!!error || undefined}
           aria-describedby={describedBy}
           className={cn(
-            "w-full resize-y rounded-[var(--radius-md)] border bg-white px-3 py-2 text-sm text-gray-900",
+            "w-full resize-y rounded-[var(--radius-md)] border bg-surface px-3 py-2 text-sm text-gray-900",
             "placeholder:text-gray-400 shadow-[var(--shadow-xs)] transition-colors",
             "duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
             "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400",

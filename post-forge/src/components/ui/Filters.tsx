@@ -30,7 +30,7 @@ export function FilterGroup({ label, options, value, onChange, className }: Filt
               "rounded-[var(--radius-full)] border px-3 py-1 text-sm font-medium transition-colors duration-[var(--duration-fast)]",
               active
                 ? "border-brand-600 bg-brand-600 text-white"
-                : "border-border-strong bg-white text-gray-600 hover:border-gray-400",
+                : "border-border-strong bg-surface text-gray-600 hover:border-gray-400",
             )}
           >
             {opt.label}

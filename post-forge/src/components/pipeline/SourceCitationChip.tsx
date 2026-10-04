@@ -28,7 +28,7 @@ export function SourceCitationChip({ title, url, verified, className }: SourceCi
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "group flex max-w-full items-center gap-2 rounded-[var(--radius-lg)] border border-border bg-white px-3 py-2 text-sm shadow-[var(--shadow-xs)]",
+        "group flex max-w-full items-center gap-2 rounded-[var(--radius-lg)] border border-border bg-surface px-3 py-2 text-sm shadow-[var(--shadow-xs)]",
         "transition-colors duration-[var(--duration-fast)] ease-[var(--ease-standard)] hover:border-brand-300 hover:bg-brand-50",
         className,
       )}

@@ -98,6 +98,23 @@ Rules:
   });
 }
 
+/**
+ * True when `research` is exactly the placeholder `fallbackFindingsFromToolCalls`
+ * emits when no real web_search results were ever found — i.e. research
+ * produced nothing verifiable at all, as opposed to a genuine (if thin)
+ * finding. Callers (the Inngest function) use this to fail the run honestly
+ * rather than let Write/Edit polish the placeholder into a confident-looking
+ * but entirely fabricated article.
+ */
+export function isPlaceholderResearch(research: Finding[] | undefined): boolean {
+  return (
+    Array.isArray(research) &&
+    research.length === 1 &&
+    research[0].source.url === "" &&
+    research[0].source.title === "n/a"
+  );
+}
+
 function fallbackFindingsFromToolCalls(result: {
   toolCalls: { tool: { name: string }; content: unknown }[];
 }): Finding[] {

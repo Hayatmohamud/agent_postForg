@@ -1,6 +1,6 @@
 /**
  * `POST /api/settings/test` (T15 BRD 4/req.2): server-side connectivity
- * probes for the four providers PostForge depends on. The Settings screen's
+ * probes for the providers PostForge depends on. The Settings screen's
  * "Integrations" section calls this once per provider (never automatically
  * for all of them at once) to answer "is this configured and reachable?"
  * without ever accepting or echoing a secret — every credential is read
@@ -9,26 +9,23 @@
  *
  * Probe design, and why each one is the *cheapest* real check available:
  *
- * - `openrouter` (text generation): calls OpenRouter's `GET /api/v1/key`
- *   endpoint, which authenticates the configured key and returns account/
- *   usage info WITHOUT running any model inference — no tokens spent, no
- *   cost, but a real round trip that proves the key is valid and OpenRouter
- *   is reachable. A 401/403 means "reachable, but the key is invalid"; any
- *   other non-2xx or a network error means "unreachable".
+ * - `gemini` (text generation — research/verify/write/edit): calls Gemini's
+ *   `GET /v1beta/models` endpoint, which authenticates the configured key
+ *   and lists available models WITHOUT running any generation — no tokens
+ *   spent, no cost, but a real round trip that proves the key is valid and
+ *   Gemini is reachable. A 401/403/400 means "reachable, but the key is
+ *   invalid"; any other non-2xx or a network error means "unreachable".
  *
- * - `image` (poster generation): PostForge routes image generation through
- *   the same OpenRouter credential as text (`src/lib/image.ts`, T02
- *   amendment) — there is no separate image-provider key. Actually invoking
+ * - `image` (poster generation): a separate credential from Gemini —
+ *   `src/lib/image.ts` uses Replicate (Gemini's own image models have zero
+ *   free-tier quota on this project; see CLAUDE.md). Actually invoking
  *   `generatePoster()` here would generate (and pay for) a real image on
  *   every click of a "test connection" button, which is exactly the
- *   "spammable paid action" this route must avoid. Since there is no
- *   dedicated lightweight "validate this image model id" endpoint on
- *   OpenRouter, this probe reuses the same free `/api/v1/key` auth check as
- *   `openrouter` (same credential) and additionally confirms the
- *   configured/default `IMAGE_MODEL` id is present in OpenRouter's public
- *   `GET /api/v1/models` catalog (also free, no auth required, no
- *   inference) — a good-faith reachability + "this model id exists" check
- *   that stops well short of a real, billable generation.
+ *   "spammable paid action" this route must avoid. Instead this probe calls
+ *   Replicate's `GET /v1/account` endpoint, which authenticates the
+ *   configured token and returns account info without running any
+ *   prediction — no cost, but a real round trip that proves the token is
+ *   valid and Replicate is reachable.
  *
  * - `serper` (web search): Serper has no separate free "check my key"
  *   endpoint, so this fires one real search for a trivial fixed query
@@ -48,18 +45,15 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { env, MissingEnvError, requireOpenRouterKey, requireEnv } from "@/lib/env";
+import { MissingEnvError, requireEnv, requireGeminiKey, requireReplicateKey } from "@/lib/env";
 import { getDb } from "@/lib/mongo";
 import { errorResponse } from "@/lib/http";
 
-const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+const REPLICATE_BASE_URL = "https://api.replicate.com/v1";
 const SERPER_SEARCH_URL = "https://google.serper.dev/search";
-// Same default as src/lib/image.ts's DEFAULT_IMAGE_MODEL — duplicated here
-// (rather than imported) because that constant isn't exported; kept in sync
-// by inspection since both live in this repo.
-const DEFAULT_IMAGE_MODEL = "google/gemini-3.1-flash-image";
 
-export type SettingsTestProvider = "openrouter" | "serper" | "image" | "mongodb";
+export type SettingsTestProvider = "gemini" | "image" | "serper" | "mongodb";
 
 export type SettingsTestResult = {
   provider: SettingsTestProvider;
@@ -68,7 +62,7 @@ export type SettingsTestResult = {
 };
 
 const requestSchema = z.object({
-  provider: z.enum(["openrouter", "serper", "image", "mongodb"]),
+  provider: z.enum(["gemini", "image", "serper", "mongodb"]),
 });
 
 function missingKeyMessage(err: unknown, label: string): string {
@@ -78,34 +72,34 @@ function missingKeyMessage(err: unknown, label: string): string {
   return err instanceof Error ? err.message : `Failed to check ${label}.`;
 }
 
-async function testOpenRouter(): Promise<SettingsTestResult> {
+async function testGemini(): Promise<SettingsTestResult> {
   let apiKey: string;
   try {
-    apiKey = requireOpenRouterKey();
+    apiKey = requireGeminiKey();
   } catch (err) {
-    return { provider: "openrouter", ok: false, message: missingKeyMessage(err, "OPENROUTER_API_KEY") };
+    return { provider: "gemini", ok: false, message: missingKeyMessage(err, "GEMINI_API_KEY") };
   }
 
   try {
-    const res = await fetch(`${OPENROUTER_BASE_URL}/key`, {
-      headers: { Authorization: `Bearer ${apiKey}` },
+    const res = await fetch(`${GEMINI_BASE_URL}/models`, {
+      headers: { "x-goog-api-key": apiKey },
     });
-    if (res.status === 401 || res.status === 403) {
-      return { provider: "openrouter", ok: false, message: "OpenRouter rejected the configured API key." };
+    if (res.status === 401 || res.status === 403 || res.status === 400) {
+      return { provider: "gemini", ok: false, message: "Gemini rejected the configured API key." };
     }
     if (!res.ok) {
-      return {
-        provider: "openrouter",
-        ok: false,
-        message: `OpenRouter responded with status ${res.status}.`,
-      };
+      return { provider: "gemini", ok: false, message: `Gemini responded with status ${res.status}.` };
     }
-    return { provider: "openrouter", ok: true, message: "OpenRouter key is valid and reachable." };
+    return {
+      provider: "gemini",
+      ok: true,
+      message: "Gemini key is valid and reachable (text generation).",
+    };
   } catch (err) {
     return {
-      provider: "openrouter",
+      provider: "gemini",
       ok: false,
-      message: `Could not reach OpenRouter: ${err instanceof Error ? err.message : "network error"}.`,
+      message: `Could not reach Gemini: ${err instanceof Error ? err.message : "network error"}.`,
     };
   }
 }
@@ -113,49 +107,31 @@ async function testOpenRouter(): Promise<SettingsTestResult> {
 async function testImageProvider(): Promise<SettingsTestResult> {
   let apiKey: string;
   try {
-    apiKey = requireOpenRouterKey();
+    apiKey = requireReplicateKey();
   } catch (err) {
-    return { provider: "image", ok: false, message: missingKeyMessage(err, "OPENROUTER_API_KEY") };
+    return { provider: "image", ok: false, message: missingKeyMessage(err, "REPLICATE_API_KEY") };
   }
 
-  const model = env("IMAGE_MODEL") ?? DEFAULT_IMAGE_MODEL;
-
   try {
-    const keyRes = await fetch(`${OPENROUTER_BASE_URL}/key`, {
+    const res = await fetch(`${REPLICATE_BASE_URL}/account`, {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
-    if (keyRes.status === 401 || keyRes.status === 403) {
-      return { provider: "image", ok: false, message: "OpenRouter rejected the configured API key." };
+    if (res.status === 401 || res.status === 403) {
+      return { provider: "image", ok: false, message: "Replicate rejected the configured API token." };
     }
-    if (!keyRes.ok) {
-      return { provider: "image", ok: false, message: `OpenRouter responded with status ${keyRes.status}.` };
+    if (!res.ok) {
+      return { provider: "image", ok: false, message: `Replicate responded with status ${res.status}.` };
     }
-
-    // Free, unauthenticated catalog lookup — confirms the configured image
-    // model id is one OpenRouter actually serves, without generating an image.
-    const modelsRes = await fetch(`${OPENROUTER_BASE_URL}/models`);
-    if (modelsRes.ok) {
-      const json = (await modelsRes.json().catch(() => null)) as { data?: { id?: string }[] } | null;
-      const ids = json?.data?.map((m) => m.id) ?? [];
-      if (ids.length > 0 && !ids.includes(model)) {
-        return {
-          provider: "image",
-          ok: false,
-          message: `Key is valid, but image model "${model}" was not found in OpenRouter's catalog.`,
-        };
-      }
-    }
-
     return {
       provider: "image",
       ok: true,
-      message: `OpenRouter key is valid; image model "${model}" is configured. (No image was generated by this test.)`,
+      message: "Replicate token is valid and reachable (poster images).",
     };
   } catch (err) {
     return {
       provider: "image",
       ok: false,
-      message: `Could not reach OpenRouter: ${err instanceof Error ? err.message : "network error"}.`,
+      message: `Could not reach Replicate: ${err instanceof Error ? err.message : "network error"}.`,
     };
   }
 }
@@ -210,14 +186,14 @@ export async function POST(req: NextRequest) {
 
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {
-    return errorResponse(400, 'Body must be { provider: "openrouter"|"serper"|"image"|"mongodb" }', "invalid_request");
+    return errorResponse(400, 'Body must be { provider: "gemini"|"image"|"serper"|"mongodb" }', "invalid_request");
   }
 
   const { provider } = parsed.data;
   let result: SettingsTestResult;
   switch (provider) {
-    case "openrouter":
-      result = await testOpenRouter();
+    case "gemini":
+      result = await testGemini();
       break;
     case "image":
       result = await testImageProvider();

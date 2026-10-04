@@ -11,7 +11,7 @@ export function Card({ className, noPadding, interactive, ...props }: CardProps)
   return (
     <div
       className={cn(
-        "rounded-[var(--radius-lg)] border border-border bg-white shadow-[var(--shadow-sm)]",
+        "rounded-[var(--radius-lg)] border border-border bg-surface shadow-[var(--shadow-sm)]",
         !noPadding && "p-5",
         interactive &&
           "transition-shadow duration-[var(--duration-fast)] ease-[var(--ease-standard)] hover:shadow-[var(--shadow-md)] cursor-pointer",

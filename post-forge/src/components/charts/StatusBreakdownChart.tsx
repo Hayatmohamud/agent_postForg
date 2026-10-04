@@ -3,7 +3,7 @@
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { StatsResponse } from "@/lib/dto";
 import { ChartEmpty } from "./ChartEmpty";
-import { axisTickStyle, STATUS_COLORS, tooltipContentStyle, tooltipLabelStyle } from "./theme";
+import { useChartColors } from "./theme";
 
 export interface StatusBreakdownChartProps {
   totals: StatsResponse["totals"];
@@ -17,14 +17,16 @@ export interface StatusBreakdownChartProps {
  * "status colors are reserved" rule.
  */
 export function StatusBreakdownChart({ totals, height = 220 }: StatusBreakdownChartProps) {
+  const { statusColors, axisTickStyle, tooltipContentStyle, tooltipLabelStyle, cursorFill } =
+    useChartColors();
   const data = [
-    { key: "done", label: "Done", value: totals?.done ?? 0, color: STATUS_COLORS.done },
-    { key: "failed", label: "Failed", value: totals?.failed ?? 0, color: STATUS_COLORS.failed },
+    { key: "done", label: "Done", value: totals?.done ?? 0, color: statusColors.done },
+    { key: "failed", label: "Failed", value: totals?.failed ?? 0, color: statusColors.failed },
     {
       key: "inProgress",
       label: "In progress",
       value: totals?.inProgress ?? 0,
-      color: STATUS_COLORS.inProgress,
+      color: statusColors.inProgress,
     },
   ];
 
@@ -47,7 +49,7 @@ export function StatusBreakdownChart({ totals, height = 220 }: StatusBreakdownCh
           contentStyle={tooltipContentStyle}
           labelStyle={tooltipLabelStyle}
           formatter={(value) => [String(value), "Posts"] as [string, string]}
-          cursor={{ fill: "rgba(0,0,0,0.03)" }}
+          cursor={{ fill: cursorFill }}
         />
         <Bar dataKey="value" radius={[4, 4, 4, 4]} maxBarSize={28}>
           {data.map((d) => (

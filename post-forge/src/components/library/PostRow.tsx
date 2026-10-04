@@ -5,13 +5,16 @@ import type { PostSummary } from "@/lib/dto";
 import { Card, StatusBadge } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { PosterThumb } from "./PosterThumb";
+import { DeletePostButton } from "./DeletePostButton";
 
 export interface PostRowProps {
   post: PostSummary;
+  /** Shows a delete button on the row when provided (e.g. Library, not Dashboard's recent-posts list). */
+  onDeleted?: () => void;
 }
 
 /** List-view row for the Library (T13): small poster thumb, title/topic, status, date. Click navigates to the post detail (T12). */
-export function PostRow({ post }: PostRowProps) {
+export function PostRow({ post, onDeleted }: PostRowProps) {
   const router = useRouter();
   const title = post.title || post.topic;
 
@@ -38,6 +41,7 @@ export function PostRow({ post }: PostRowProps) {
       </div>
       <StatusBadge status={post.status} className="shrink-0" />
       <span className="w-24 shrink-0 text-right text-xs text-gray-400">{formatDate(post.updatedAt)}</span>
+      {onDeleted && <DeletePostButton postId={post.id} title={title} onDeleted={onDeleted} />}
     </Card>
   );
 }

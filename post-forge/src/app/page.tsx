@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Avatar, Badge, Card, CardDescription, CardTitle } from "@/components/ui";
+import { Avatar, Card, CardDescription, CardTitle } from "@/components/ui";
 import { AGENT_STAGES } from "@/components/pipeline";
 import { PipelinePreview } from "@/components/landing/PipelinePreview";
 import { LinkButton } from "@/components/landing/LinkButton";
+import { HeroTopicField } from "@/components/landing/HeroTopicField";
 import { LibraryIcon, ScheduleIcon, CheckIcon } from "@/components/landing/icons";
 
 export const metadata: Metadata = {
@@ -116,7 +117,7 @@ export default function LandingPage() {
   return (
     <div className="flex flex-1 flex-col">
       {/* ---- Nav ---- */}
-      <header className="sticky top-0 z-10 border-b border-border bg-white/80 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-border bg-bg/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="text-lg font-semibold text-gray-900">
             PostForge
@@ -137,24 +138,25 @@ export default function LandingPage() {
         <section className="mx-auto max-w-6xl px-6 pt-14 pb-16 sm:pt-20 sm:pb-24">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div className="max-w-xl">
-              <Badge tone="brand" className="mb-5">
-                Six autonomous agents, one finished post
-              </Badge>
+              <div className="mb-5 inline-flex items-center gap-2.5 rounded-[var(--radius-full)] border border-border-strong bg-surface px-3.5 py-1.5 font-mono text-[12.5px] text-gray-600">
+                <span className="inline-flex items-center gap-1.5 font-semibold text-brand-700">
+                  <span className="h-1.5 w-1.5 animate-pulse-ring rounded-full bg-brand-600" />6 agents
+                </span>
+                <span className="text-border-strong">&middot;</span>
+                Research &rarr; Verify &rarr; Write &rarr; Edit &rarr; Illustrate &rarr; Publish
+              </div>
               <h1 className="text-4xl font-semibold leading-tight tracking-tight text-gray-900 sm:text-5xl">
-                Type a topic. Get a sourced, illustrated post — written by a team of AI agents.
+                One topic in. A{" "}
+                <em className="font-serif font-medium italic text-brand-700">
+                  researched, verified
+                </em>{" "}
+                post out.
               </h1>
               <p className="mt-5 text-lg text-gray-600">
-                PostForge researches the web, verifies every claim, drafts and edits the piece,
-                generates a poster, and publishes it — fully autonomously, end to end.
+                PostForge runs a team of autonomous AI agents that research the web, fact-check every
+                claim, write the piece, design a poster, and publish it — while you watch, live.
               </p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <LinkButton href="/sign-up" size="lg">
-                  Start free
-                </LinkButton>
-                <LinkButton href="/sign-in" variant="secondary" size="lg">
-                  Sign in
-                </LinkButton>
-              </div>
+              <HeroTopicField />
               <p className="mt-4 text-sm text-gray-500">No credit card required.</p>
             </div>
             <PipelinePreview />
@@ -216,10 +218,10 @@ export default function LandingPage() {
         {/* ---- Pricing-style CTA ---- */}
         <section className="border-t border-border bg-gray-50/60 py-16 sm:py-20" id="get-started">
           <div className="mx-auto max-w-3xl px-6">
-            <div className="rounded-[var(--radius-2xl)] border border-border bg-white p-8 text-center shadow-[var(--shadow-lg)] sm:p-12">
+            <div className="rounded-[var(--radius-2xl)] border border-brand-200 bg-brand-50 p-8 text-center shadow-[var(--shadow-lg)] sm:p-12">
               <h2 className="text-3xl font-semibold text-gray-900">Start publishing with PostForge</h2>
               <p className="mt-3 text-gray-600">
-                Free while in preview. Bring your own OpenRouter and Serper keys, or use the shared
+                Free while in preview. Bring your own Gemini and Serper keys, or use the shared
                 defaults.
               </p>
               <ul className="mx-auto mt-8 grid max-w-md gap-3 text-left">
@@ -246,7 +248,7 @@ export default function LandingPage() {
       </main>
 
       {/* ---- Footer ---- */}
-      <footer className="border-t border-border bg-white">
+      <footer className="border-t border-border bg-bg">
         <div className="mx-auto max-w-6xl px-6 py-10">
           <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
             <div>

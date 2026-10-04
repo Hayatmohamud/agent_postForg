@@ -3,7 +3,7 @@
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { TimeSeriesPoint } from "@/lib/dto";
 import { ChartEmpty } from "./ChartEmpty";
-import { axisTickStyle, BRAND, BRAND_SOFT, GRID_COLOR, tooltipContentStyle, tooltipLabelStyle } from "./theme";
+import { useChartColors } from "./theme";
 
 export interface ActivityChartProps {
   activityByDay: TimeSeriesPoint[] | undefined;
@@ -24,6 +24,8 @@ function shortDate(iso: string): string {
  */
 export function ActivityChart({ activityByDay, height = 240 }: ActivityChartProps) {
   const data = activityByDay ?? [];
+  const { brand, brandSoft, gridColor, axisTickStyle, tooltipContentStyle, tooltipLabelStyle } =
+    useChartColors();
   if (data.length === 0) return <ChartEmpty label="No activity yet" height={height} />;
 
   return (
@@ -31,11 +33,11 @@ export function ActivityChart({ activityByDay, height = 240 }: ActivityChartProp
       <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: 0 }}>
         <defs>
           <linearGradient id="activityFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={BRAND_SOFT} stopOpacity={0.9} />
-            <stop offset="100%" stopColor={BRAND_SOFT} stopOpacity={0.1} />
+            <stop offset="0%" stopColor={brandSoft} stopOpacity={0.9} />
+            <stop offset="100%" stopColor={brandSoft} stopOpacity={0.1} />
           </linearGradient>
         </defs>
-        <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
+        <CartesianGrid stroke={gridColor} strokeDasharray="3 3" vertical={false} />
         <XAxis
           dataKey="date"
           tickFormatter={shortDate}
@@ -54,7 +56,7 @@ export function ActivityChart({ activityByDay, height = 240 }: ActivityChartProp
         <Area
           type="monotone"
           dataKey="value"
-          stroke={BRAND}
+          stroke={brand}
           strokeWidth={2}
           fill="url(#activityFill)"
           activeDot={{ r: 4 }}

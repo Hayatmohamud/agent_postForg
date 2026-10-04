@@ -24,7 +24,7 @@ export function ErrorState({ icon, title, description, action, className }: Erro
       )}
     >
       {icon && (
-        <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-full)] bg-white text-error-500 shadow-[var(--shadow-xs)]">
+        <div className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-full)] bg-surface text-error-500 shadow-[var(--shadow-xs)]">
           {icon}
         </div>
       )}

@@ -1,159 +1,163 @@
 @import "tailwindcss";
 
 /*
- * PostForge design system tokens — T07.
+ * PostForge design system tokens — redesign import (claude.ai/design mockup).
+ *
+ * Supersedes the original T07 tokens (see CLAUDE.md's "locked decisions"
+ * note): brand accent is now green (was indigo), and this file ships a real
+ * light/dark theme (was "light theme only, no dark-mode block").
+ *
  * Tailwind v4 CSS-first config: tokens live under `@theme` and Tailwind
  * auto-generates matching utilities (e.g. --color-brand-600 -> bg-brand-600,
- * text-brand-600, border-brand-600, etc). See DESIGN_PROMPT.md section 4.
+ * text-brand-600, border-brand-600, etc). Dark-mode values are supplied by a
+ * plain CSS block below that re-declares the same custom properties scoped
+ * under `[data-theme="dark"]` — utilities keep referencing the same var, so
+ * no component classNames need to change between themes.
  *
- * Light theme only (locked decision, see CLAUDE.md). No dark-mode block.
- *
- * Accent rationale:
- * - Brand = indigo. Confident, modern, reads as "trustworthy AI product"
- *   (same family Linear/Vercel-adjacent tools use) without colliding with
- *   the green "success" semantic or any of the six agent-stage hues below.
- * - Six agent accents are spread around the hue wheel (sky, emerald, violet,
- *   amber, pink, indigo) so adjacent pipeline stages are always visually
- *   distinguishable at a glance, even for the ~8% of users with red/green
- *   color-vision deficiency (no two adjacent stages rely on a red/green pair
- *   alone — status is always paired with an icon + text label too).
- * - All text-on-background pairings below are chosen at shades that clear
- *   WCAG AA (4.5:1 for body text, 3:1 for large/bold text and UI borders).
- *   Ratios noted inline were computed against #ffffff / var(--color-gray-50).
+ * Six agent accents are spread around the hue wheel (blue/green/violet/amber/
+ * pink/indigo-blue) so adjacent pipeline stages are always visually
+ * distinguishable, even for the ~8% of users with red/green color-vision
+ * deficiency — status is always paired with an icon + text label too.
  */
 @theme {
   /* ---- Fonts (wired to next/font variables set on <html> in layout.tsx) ---- */
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", sans-serif;
-  --font-serif: var(--font-editorial), ui-serif, Georgia, "Times New Roman",
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, "Times New Roman",
     serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo,
-    monospace;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular",
+    Menlo, monospace;
 
-  /* ---- Neutral gray scale (cool, near-neutral; used for bg/surface/border/text) ---- */
-  --color-gray-50: #fafafa;
-  --color-gray-100: #f4f4f5;
-  --color-gray-200: #e4e4e7;
-  --color-gray-300: #d4d4d8;
-  --color-gray-400: #a1a1aa;
-  --color-gray-500: #71717a;
-  --color-gray-600: #52525b; /* 7.0:1 on white — meets AA for body text */
-  --color-gray-700: #3f3f46; /* 9.9:1 on white */
-  --color-gray-800: #27272a; /* 14.7:1 on white */
-  --color-gray-900: #18181b; /* 17.6:1 on white — primary text */
-  --color-gray-950: #09090b;
+  /* ---- Neutral gray scale (cool, near-green-black; used for bg/surface/border/text) ---- */
+  --color-gray-50: #f7faf8;
+  --color-gray-100: #eef2f0;
+  --color-gray-200: #e5eae7;
+  --color-gray-300: #d2dbd7;
+  --color-gray-400: #aab4af;
+  --color-gray-500: #6f7973; /* AA-safe muted text on white */
+  --color-gray-600: #566058;
+  --color-gray-700: #3f4944;
+  --color-gray-800: #232c27;
+  --color-gray-900: #0f1613;
+  --color-gray-950: #070a08;
 
-  /* Semantic surface roles (aliases so components read intent, not a shade number) */
-  --color-bg: var(--color-gray-50);
+  /* Semantic surface roles — literal per-theme values (not gray-scale
+     aliases), because dark mode's card surface is *lighter* than its page
+     background (inverted from light mode), which a simple ramp can't express. */
+  --color-bg: #ffffff;
+  --color-bg-sub: #f7faf8;
   --color-surface: #ffffff;
-  --color-border: var(--color-gray-200);
-  --color-border-strong: var(--color-gray-300);
-  --color-text-muted: var(--color-gray-500); /* 4.6:1 on white — AA for body */
-  --color-text: var(--color-gray-900);
+  --color-surface-2: #f7faf8;
+  --color-border: #e5eae7;
+  --color-border-strong: #d2dbd7;
+  --color-text-muted: #6f7973;
+  --color-text: #0b1210;
 
-  /* ---- Brand accent: indigo ---- */
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-300: #a5b4fc;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5; /* 5.9:1 on white — AA body text / solid button bg with white text 5.9:1 */
-  --color-brand-700: #4338ca; /* 8.0:1 on white */
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
+  /* ---- Brand accent: green ---- */
+  --color-brand-50: oklch(0.965 0.028 157);
+  --color-brand-100: oklch(0.93 0.045 157);
+  --color-brand-200: oklch(0.88 0.06 157);
+  --color-brand-300: oklch(0.8 0.09 157);
+  --color-brand-400: oklch(0.7 0.12 157);
+  --color-brand-500: oklch(0.66 0.145 157);
+  --color-brand-600: oklch(0.6 0.145 157);
+  --color-brand-700: oklch(0.53 0.145 157);
+  --color-brand-800: oklch(0.46 0.13 157);
+  --color-brand-900: oklch(0.42 0.11 157);
 
   /* ---- Semantic colors ---- */
-  --color-success-50: #ecfdf5;
-  --color-success-100: #d1fae5;
-  --color-success-500: #10b981;
-  --color-success-600: #059669; /* 4.6:1 on white */
-  --color-success-700: #047857;
+  /* Success reuses the brand green ramp — the mockup treats "verified" /
+     "completed" status and the brand accent as the same hue. */
+  --color-success-50: var(--color-brand-50);
+  --color-success-100: var(--color-brand-100);
+  --color-success-500: var(--color-brand-500);
+  --color-success-600: var(--color-brand-600);
+  --color-success-700: var(--color-brand-700);
 
-  --color-warning-50: #fffbeb;
-  --color-warning-100: #fef3c7;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706; /* 4.5:1 on white */
-  --color-warning-700: #b45309;
+  --color-warning-50: oklch(0.965 0.035 72);
+  --color-warning-100: oklch(0.93 0.05 72);
+  --color-warning-500: oklch(0.68 0.13 72);
+  --color-warning-600: oklch(0.62 0.13 72);
+  --color-warning-700: oklch(0.54 0.12 72);
 
-  --color-error-50: #fef2f2;
-  --color-error-100: #fee2e2;
-  --color-error-500: #ef4444;
-  --color-error-600: #dc2626; /* 5.9:1 on white */
-  --color-error-700: #b91c1c;
+  --color-error-50: oklch(0.965 0.025 25);
+  --color-error-100: oklch(0.93 0.04 25);
+  --color-error-500: oklch(0.62 0.17 25);
+  --color-error-600: oklch(0.55 0.17 25);
+  --color-error-700: oklch(0.48 0.16 25);
 
-  --color-info-50: #eff6ff;
-  --color-info-100: #dbeafe;
-  --color-info-500: #3b82f6;
-  --color-info-600: #2563eb; /* 5.2:1 on white */
-  --color-info-700: #1d4ed8;
+  --color-info-50: oklch(0.965 0.028 250);
+  --color-info-100: oklch(0.93 0.045 250);
+  --color-info-500: oklch(0.66 0.16 250);
+  --color-info-600: oklch(0.58 0.16 250);
+  --color-info-700: oklch(0.5 0.15 250);
 
   /* ---- Six per-agent / pipeline-stage accents ---- */
-  /* Research — sky (search/discovery) */
-  --color-agent-research-50: #f0f9ff;
-  --color-agent-research-100: #e0f2fe;
-  --color-agent-research-500: #0ea5e9;
-  --color-agent-research-600: #0284c7; /* 4.6:1 on white */
-  --color-agent-research-700: #0369a1;
+  /* Research — blue (search/discovery) */
+  --color-agent-research-50: oklch(0.965 0.028 250);
+  --color-agent-research-100: oklch(0.88 0.06 250);
+  --color-agent-research-500: oklch(0.66 0.16 250);
+  --color-agent-research-600: oklch(0.58 0.16 250);
+  --color-agent-research-700: oklch(0.5 0.15 250);
 
-  /* Verify — emerald (trust / fact-check) */
-  --color-agent-verify-50: #ecfdf5;
-  --color-agent-verify-100: #d1fae5;
-  --color-agent-verify-500: #10b981;
-  --color-agent-verify-600: #059669; /* 4.6:1 on white */
-  --color-agent-verify-700: #047857;
+  /* Verify — green (same hue as brand: trust / fact-check) */
+  --color-agent-verify-50: var(--color-brand-50);
+  --color-agent-verify-100: var(--color-brand-200);
+  --color-agent-verify-500: var(--color-brand-500);
+  --color-agent-verify-600: var(--color-brand-600);
+  --color-agent-verify-700: var(--color-brand-700);
 
   /* Write — violet (creative drafting) */
-  --color-agent-write-50: #f5f3ff;
-  --color-agent-write-100: #ede9fe;
-  --color-agent-write-500: #8b5cf6;
-  --color-agent-write-600: #7c3aed; /* 5.2:1 on white */
-  --color-agent-write-700: #6d28d9;
+  --color-agent-write-50: oklch(0.965 0.028 300);
+  --color-agent-write-100: oklch(0.88 0.06 300);
+  --color-agent-write-500: oklch(0.66 0.15 300);
+  --color-agent-write-600: oklch(0.58 0.15 300);
+  --color-agent-write-700: oklch(0.5 0.14 300);
 
   /* Edit — amber (polish / refine) */
-  --color-agent-edit-50: #fffbeb;
-  --color-agent-edit-100: #fef3c7;
-  --color-agent-edit-500: #f59e0b;
-  --color-agent-edit-600: #d97706; /* 4.5:1 on white */
-  --color-agent-edit-700: #b45309;
+  --color-agent-edit-50: oklch(0.965 0.035 55);
+  --color-agent-edit-100: oklch(0.88 0.07 55);
+  --color-agent-edit-500: oklch(0.68 0.13 55);
+  --color-agent-edit-600: oklch(0.62 0.13 55);
+  --color-agent-edit-700: oklch(0.54 0.12 55);
 
-  /* Illustrate — fuchsia/pink (visual generation) */
-  --color-agent-illustrate-50: #fdf4ff;
-  --color-agent-illustrate-100: #fae8ff;
-  --color-agent-illustrate-500: #d946ef;
-  --color-agent-illustrate-600: #c026d3; /* 4.8:1 on white */
-  --color-agent-illustrate-700: #a21caf;
+  /* Illustrate — pink (visual generation) */
+  --color-agent-illustrate-50: oklch(0.965 0.028 335);
+  --color-agent-illustrate-100: oklch(0.88 0.06 335);
+  --color-agent-illustrate-500: oklch(0.66 0.17 335);
+  --color-agent-illustrate-600: oklch(0.6 0.17 335);
+  --color-agent-illustrate-700: oklch(0.52 0.16 335);
 
-  /* Publish — indigo (matches brand: the "official/final" step) */
-  --color-agent-publish-50: #eef2ff;
-  --color-agent-publish-100: #e0e7ff;
-  --color-agent-publish-500: #6366f1;
-  --color-agent-publish-600: #4f46e5; /* 5.9:1 on white */
-  --color-agent-publish-700: #4338ca;
+  /* Publish — indigo-blue (the "official/final" step) */
+  --color-agent-publish-50: oklch(0.965 0.028 225);
+  --color-agent-publish-100: oklch(0.88 0.06 225);
+  --color-agent-publish-500: oklch(0.62 0.15 225);
+  --color-agent-publish-600: oklch(0.56 0.15 225);
+  --color-agent-publish-700: oklch(0.48 0.14 225);
 
   /* ---- Radius scale ---- */
-  --radius-xs: 0.25rem;
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
   --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
+  --radius-2xl: 1.25rem;
   --radius-full: 9999px;
 
-  /* ---- Elevation / shadow scale (soft, low-opacity, per DESIGN_PROMPT "restrained") ---- */
-  --shadow-xs: 0 1px 2px 0 rgb(24 24 27 / 0.04);
-  --shadow-sm: 0 1px 3px 0 rgb(24 24 27 / 0.06), 0 1px 2px -1px rgb(24 24 27 / 0.06);
-  --shadow-md: 0 4px 10px -2px rgb(24 24 27 / 0.08), 0 2px 6px -2px rgb(24 24 27 / 0.05);
-  --shadow-lg: 0 12px 24px -6px rgb(24 24 27 / 0.12), 0 4px 8px -4px rgb(24 24 27 / 0.06);
-  --shadow-xl: 0 24px 48px -12px rgb(24 24 27 / 0.18);
-  --shadow-focus: 0 0 0 3px var(--color-brand-200);
+  /* ---- Elevation / shadow scale (near-green-black tint) ---- */
+  --shadow-xs: 0 1px 2px 0 rgb(11 18 16 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(11 18 16 / 0.06), 0 1px 2px -1px rgb(11 18 16 / 0.05);
+  --shadow-md: 0 2px 4px -1px rgb(11 18 16 / 0.04), 0 8px 24px -4px rgb(11 18 16 / 0.06);
+  --shadow-lg: 0 12px 32px -8px rgb(11 18 16 / 0.1);
+  --shadow-xl: 0 24px 64px -12px rgb(11 18 16 / 0.12);
+  --shadow-focus: 0 0 0 3px oklch(0.6 0.145 157 / 0.35);
 
   /* ---- Motion: durations + easing ---- */
   --duration-instant: 100ms;
   --duration-fast: 150ms;
   --duration-base: 220ms;
   --duration-slow: 400ms;
-  --duration-pulse: 1800ms;
+  --duration-pulse: 2000ms;
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
@@ -163,6 +167,8 @@
   --animate-shimmer: shimmer 1.6s ease-in-out infinite;
   --animate-fade-in: fade-in var(--duration-base) var(--ease-out);
   --animate-scale-in: scale-in var(--duration-base) var(--ease-emphasized);
+  --animate-rise-in: rise-in 0.18s var(--ease-out) both;
+  --animate-spin-slow: spin 0.8s linear infinite;
 
   @keyframes pulse-ring {
     0% {
@@ -204,11 +210,129 @@
       transform: scale(1) translateY(0);
     }
   }
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* ---- Dark mode: same custom properties, re-declared under the theme attribute set
+   in layout.tsx's no-flash script / the Settings > Appearance toggle (src/lib/theme.ts). ---- */
+[data-theme="dark"] {
+  --color-gray-50: #141b19;
+  --color-gray-100: #1a231f;
+  --color-gray-200: #1e2724;
+  --color-gray-300: #2b3733;
+  --color-gray-400: #46524d;
+  --color-gray-500: #7d8a85;
+  --color-gray-600: #97a29c;
+  --color-gray-700: #aeb8b3;
+  --color-gray-800: #cdd5d1;
+  --color-gray-900: #eef3f0;
+  --color-gray-950: #f7faf8;
+
+  --color-bg: #080b0a;
+  --color-bg-sub: #0c110f;
+  --color-surface: #101614;
+  --color-surface-2: #141b19;
+  --color-border: #1e2724;
+  --color-border-strong: #2b3733;
+  --color-text-muted: #7d8a85;
+  --color-text: #eef3f0;
+
+  --color-brand-50: oklch(0.28 0.055 157);
+  --color-brand-100: oklch(0.33 0.06 157);
+  --color-brand-200: oklch(0.38 0.07 157);
+  --color-brand-300: oklch(0.45 0.1 157);
+  --color-brand-400: oklch(0.55 0.13 157);
+  --color-brand-500: oklch(0.65 0.15 157);
+  --color-brand-600: oklch(0.72 0.15 157);
+  --color-brand-700: oklch(0.79 0.15 157);
+  --color-brand-800: oklch(0.82 0.13 157);
+  --color-brand-900: oklch(0.85 0.12 157);
+
+  --color-success-50: var(--color-brand-50);
+  --color-success-100: var(--color-brand-100);
+  --color-success-500: var(--color-brand-500);
+  --color-success-600: var(--color-brand-600);
+  --color-success-700: var(--color-brand-700);
+
+  --color-warning-50: oklch(0.28 0.05 78);
+  --color-warning-100: oklch(0.33 0.06 78);
+  --color-warning-500: oklch(0.7 0.13 78);
+  --color-warning-600: oklch(0.78 0.13 78);
+  --color-warning-700: oklch(0.84 0.12 78);
+
+  --color-error-50: oklch(0.27 0.06 25);
+  --color-error-100: oklch(0.32 0.07 25);
+  --color-error-500: oklch(0.6 0.16 25);
+  --color-error-600: oklch(0.68 0.16 25);
+  --color-error-700: oklch(0.74 0.15 25);
+
+  --color-info-50: oklch(0.28 0.055 250);
+  --color-info-100: oklch(0.33 0.06 250);
+  --color-info-500: oklch(0.65 0.15 250);
+  --color-info-600: oklch(0.72 0.15 250);
+  --color-info-700: oklch(0.79 0.15 250);
+
+  --color-agent-research-50: oklch(0.28 0.055 250);
+  --color-agent-research-100: oklch(0.38 0.07 250);
+  --color-agent-research-500: oklch(0.65 0.15 250);
+  --color-agent-research-600: oklch(0.72 0.15 250);
+  --color-agent-research-700: oklch(0.79 0.14 250);
+
+  --color-agent-verify-50: var(--color-brand-50);
+  --color-agent-verify-100: var(--color-brand-200);
+  --color-agent-verify-500: var(--color-brand-500);
+  --color-agent-verify-600: var(--color-brand-600);
+  --color-agent-verify-700: var(--color-brand-700);
+
+  --color-agent-write-50: oklch(0.28 0.055 300);
+  --color-agent-write-100: oklch(0.38 0.07 300);
+  --color-agent-write-500: oklch(0.65 0.14 300);
+  --color-agent-write-600: oklch(0.72 0.14 300);
+  --color-agent-write-700: oklch(0.79 0.13 300);
+
+  --color-agent-edit-50: oklch(0.28 0.05 55);
+  --color-agent-edit-100: oklch(0.38 0.07 55);
+  --color-agent-edit-500: oklch(0.7 0.13 55);
+  --color-agent-edit-600: oklch(0.76 0.13 55);
+  --color-agent-edit-700: oklch(0.82 0.12 55);
+
+  --color-agent-illustrate-50: oklch(0.28 0.055 335);
+  --color-agent-illustrate-100: oklch(0.38 0.07 335);
+  --color-agent-illustrate-500: oklch(0.67 0.16 335);
+  --color-agent-illustrate-600: oklch(0.74 0.16 335);
+  --color-agent-illustrate-700: oklch(0.8 0.15 335);
+
+  --color-agent-publish-50: oklch(0.27 0.05 225);
+  --color-agent-publish-100: oklch(0.37 0.07 225);
+  --color-agent-publish-500: oklch(0.63 0.14 225);
+  --color-agent-publish-600: oklch(0.7 0.14 225);
+  --color-agent-publish-700: oklch(0.77 0.13 225);
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 2px 4px -1px rgb(0 0 0 / 0.3), 0 8px 24px -4px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 12px 32px -8px rgb(0 0 0 / 0.45);
+  --shadow-xl: 0 24px 64px -12px rgb(0 0 0 / 0.55);
+  --shadow-focus: 0 0 0 3px oklch(0.72 0.15 157 / 0.45);
 }
 
 /* ---- Base layer ---- */
 html {
   color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {
@@ -217,9 +341,18 @@ body {
   font-family: var(--font-sans);
 }
 
+a {
+  color: var(--color-brand-700);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-brand-600);
+}
+
 /* Visible focus ring on every interactive element, keyboard-only via :focus-visible */
 :focus-visible {
-  outline: 2px solid var(--color-brand-500);
+  outline: 2px solid var(--color-brand-600);
   outline-offset: 2px;
   border-radius: var(--radius-xs);
 }

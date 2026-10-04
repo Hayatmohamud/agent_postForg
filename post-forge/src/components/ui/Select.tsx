@@ -38,7 +38,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             id={selectId}
             aria-invalid={!!error || undefined}
             className={cn(
-              "h-10 w-full appearance-none rounded-[var(--radius-md)] border bg-white pl-3 pr-9 text-sm text-gray-900",
+              "h-10 w-full appearance-none rounded-[var(--radius-md)] border bg-surface pl-3 pr-9 text-sm text-gray-900",
               "shadow-[var(--shadow-xs)] transition-colors duration-[var(--duration-fast)]",
               "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400",
               error

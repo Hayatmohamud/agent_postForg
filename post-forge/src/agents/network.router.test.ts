@@ -2,7 +2,7 @@
  * Router determinism tests (T04 BRD §8.1 / acceptance criteria).
  *
  * Pure-logic tests against `routeNext`: no model, no network run, no
- * external services (OpenRouter/Serper/Mongo) required — this is the
+ * external services (Gemini/Serper/Mongo) required — this is the
  * verification path available in this environment (see tasks/reports.jsonl
  * for the credentials blocker filed alongside this task).
  */
@@ -14,7 +14,7 @@ import type { NetworkState } from "@/lib/state";
 
 // Stand-in agents: routeNext only ever compares/returns these by reference,
 // it never inspects agent internals, so plain named stubs are sufficient
-// and avoid needing a real model (OPENROUTER_API_KEY) to construct one.
+// and avoid needing a real model (GEMINI_API_KEY) to construct one.
 function stubAgent(name: string): Agent<NetworkState> {
   return { name } as unknown as Agent<NetworkState>;
 }
@@ -115,5 +115,18 @@ describe("routeNext (deterministic code router)", () => {
       verifiedFindings: [],
     };
     expect(routeNext(state, agents)).toBe(agents.verify);
+  });
+
+  it("posterSkipped without posterImageId -> publisher (graceful degradation, not stuck on illustrator)", () => {
+    const state: NetworkState = {
+      ...baseState,
+      research: [{ claim: "c", source: { title: "t", url: "u" }, verified: false }],
+      verifiedFindings: [{ claim: "c", source: { title: "t", url: "u" }, verified: true }],
+      draft: "draft text",
+      finalPost: "final text",
+      title: "Title",
+      posterSkipped: true,
+    };
+    expect(routeNext(state, agents)).toBe(agents.publisher);
   });
 });

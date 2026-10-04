@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------
  *
  * `tasks/README.md`'s "known pitfalls" section flags a real, previously-hit
- * bug: AgentKit + OpenRouter's `step.ai.infer` can 400 through Inngest's
+ * bug: AgentKit's `step.ai.infer` can 400 through Inngest's
  * AI-Gateway offload. Reading `node_modules/@inngest/agent-kit` (v0.13.2)
  * and `node_modules/inngest`'s actual source confirms *why*, and that the
  * old "just wrap network.run() in step.run()" instinct does not fix it:
@@ -40,8 +40,8 @@
  *   `AgenticModel.infer()`). The only way to make `getStepTools()` return
  *   `undefined` -- and force `AgenticModel.infer()` down its *other*,
  *   already-implemented code path (a plain direct `fetch()` straight to
- *   OpenRouter, using the same URL/model/apiKey `lib/models.ts` already
- *   builds) -- is Node's own `AsyncLocalStorage.exit()`, escaping the
+ *   Gemini's OpenAI-compatible endpoint, using the same URL/model/apiKey
+ *   `lib/models.ts` already builds) -- is Node's own `AsyncLocalStorage.exit()`, escaping the
  *   ambient context for the duration of a callback (and everything it
  *   asynchronously spawns).
  *
@@ -91,6 +91,7 @@ import { NonRetriableError } from "inngest";
 import type { AgentResult } from "@inngest/agent-kit";
 import { inngest } from "./client";
 import { buildNetwork, routeNext, type PipelineAgents } from "@/agents/network";
+import { isPlaceholderResearch } from "@/agents/research";
 import {
   getPostById,
   updateStage,
@@ -147,7 +148,7 @@ function isStageComplete(stage: Stage, state: NetworkState): boolean {
     case "edit":
       return Boolean(state.finalPost);
     case "illustrate":
-      return Boolean(state.posterImageId);
+      return Boolean(state.posterImageId) || Boolean(state.posterSkipped);
     case "publish":
       return Boolean(state.published);
     default:
@@ -223,12 +224,9 @@ function buildSubProgress(stage: Stage, state: NetworkState, result: AgentResult
         at,
       };
     case "illustrate":
-      return {
-        stage,
-        kind: "poster-ready",
-        data: { posterImageId: state.posterImageId },
-        at,
-      };
+      return state.posterSkipped
+        ? { stage, kind: "poster-skipped", data: {}, at }
+        : { stage, kind: "poster-ready", data: { posterImageId: state.posterImageId }, at };
     case "publish":
       return {
         stage,
@@ -328,6 +326,20 @@ export const generatePost = inngest.createFunction(
     // though the network run itself is one opaque durable step.
     let currentStage: Stage = "research";
 
+    // Set instead of thrown from inside the router below (see the comment
+    // at its call site): throwing from there previously hung the whole run
+    // indefinitely rather than failing it -- this file's own top doc-comment
+    // already documents `withoutInngestStepContext`'s AsyncLocalStorage-exit
+    // wrapper as a fragile, internal-API-reaching workaround, and it turns
+    // out a router-thrown error inside it never propagates back out to
+    // Inngest at all (confirmed live: the Inngest dev server's own log
+    // showed zero activity for 12+ minutes after the throw -- the function's
+    // HTTP response to Inngest never came back). Returning `undefined` from
+    // the router instead reuses the *already-working* "network.run()
+    // finished without publishing" path a few lines down, which reliably
+    // marks the post failed with a clear reason.
+    let stopReason: string | undefined;
+
     try {
       const network = buildNetwork({ runId, options });
       // Seed state.data with { runId, options, postId } per BRD 2 --
@@ -365,6 +377,23 @@ export const generatePost = inngest.createFunction(
                       postId,
                       buildSubProgress(finishedStage, state, args.lastResult)
                     );
+
+                    // Research's own graceful-degradation fallback (T04)
+                    // produces a placeholder "no verifiable findings" entry
+                    // rather than never terminating. Left unchecked, that
+                    // placeholder flows straight through Write/Edit, which
+                    // will happily polish it into a fluent, confident, but
+                    // entirely fabricated article that still ends up
+                    // status:"done" — indistinguishable from a real post.
+                    // Stop the run honestly here instead of publishing that
+                    // (see `stopReason`'s doc comment for why this returns
+                    // `undefined` rather than throwing).
+                    if (finishedStage === "research" && isPlaceholderResearch(state.research)) {
+                      stopReason =
+                        "Research found no real, verifiable sources for this topic " +
+                        "(the model never produced usable search results after retrying).";
+                      return undefined;
+                    }
                   } else {
                     // Still mid-attempt on the same stage (T04's own
                     // MAX_STAGE_ATTEMPTS retry loop) -- observable, but
@@ -407,8 +436,9 @@ export const generatePost = inngest.createFunction(
       const finished = await getPostById(postId);
       if (finished?.status !== "done") {
         const message =
+          stopReason ??
           "Pipeline did not reach the publish stage (likely hit the router's " +
-          "max-iteration safety cap without a stage producing valid output).";
+            "max-iteration safety cap without a stage producing valid output).";
         await updateStage(postId, currentStage, {
           state: "failed",
           endedAt: new Date(),

@@ -10,7 +10,6 @@ import {
   CardTitle,
   EmptyState,
   ErrorState,
-  PromptField,
   Skeleton,
   SkeletonText,
 } from "@/components/ui";
@@ -48,7 +47,6 @@ async function fetchJson<T>(url: string): Promise<T> {
  */
 export default function DashboardPage() {
   const router = useRouter();
-  const [topic, setTopic] = useState("");
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   const load = useCallback(async () => {
@@ -68,30 +66,15 @@ export default function DashboardPage() {
     load();
   }, [load]);
 
-  function goToNewPost() {
-    const trimmed = topic.trim();
-    router.push(trimmed ? `/new-post?topic=${encodeURIComponent(trimmed)}` : "/new-post");
-  }
-
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <header className="space-y-1">
         <p className="font-mono text-xs uppercase tracking-wide text-brand-600">Dashboard</p>
-        <h1 className="text-2xl font-semibold text-gray-900">Welcome back</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-[28px]">Good morning</h1>
         <p className="text-sm text-gray-500">
           Kick off a new post, or check how your pipeline has been performing.
         </p>
       </header>
-
-      <Card className="bg-gradient-to-br from-brand-50 to-white">
-        <PromptField
-          value={topic}
-          onChange={setTopic}
-          onSubmit={goToNewPost}
-          label="Start a new post"
-          suggestions={["World Cup 2026", "The future of remote work", "Best budget mirrorless cameras"]}
-        />
-      </Card>
 
       {state.status === "loading" && (
         <div className="space-y-8">
@@ -133,10 +116,10 @@ export default function DashboardPage() {
       {state.status === "ready" && state.stats.totals.all === 0 && (
         <EmptyState
           title="No posts yet"
-          description="Generate your first post to see recent activity and analytics here."
+          description="Your first run takes about three minutes. Start with a topic you already know well — it makes the verification pass easy to judge."
           action={
             <Button size="sm" onClick={() => router.push("/new-post")}>
-              New post
+              Create your first post
             </Button>
           }
         />
@@ -186,7 +169,7 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle>Recent posts</CardTitle>
               <Button size="sm" variant="ghost" onClick={() => router.push("/library")}>
-                View all
+                View library
               </Button>
             </CardHeader>
             {state.recent.items.length === 0 ? (
@@ -207,9 +190,9 @@ export default function DashboardPage() {
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <Card>
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-gray-900">{value}</p>
+    <Card className="transition-colors duration-[var(--duration-fast)] hover:border-border-strong">
+      <p className="font-mono text-xs uppercase tracking-wide text-gray-400">{label}</p>
+      <p className="mt-1.5 text-[28px] font-semibold tracking-tight text-gray-900">{value}</p>
     </Card>
   );
 }

@@ -2,11 +2,11 @@
  * `generate_poster` AgentKit tool — generates a poster image and stores it
  * in GridFS.
  *
- * Per the T02/T03 OpenRouter amendment: reads `options.imageModel` (an
- * OpenRouter model id, NOT a provider name like "gemini"/"openai") from
- * network state and passes it straight through as `generatePoster`'s
- * `modelOverride`. All image generation goes through T02's `image.ts`
- * (OpenRouter-only) — no direct Gemini/OpenAI SDK calls here.
+ * Reads `options.imageModel` (a Replicate model id, e.g.
+ * "black-forest-labs/flux-schnell", NOT a provider name) from network state
+ * and passes it straight through as `generatePoster`'s `modelOverride`. All
+ * image generation goes through `src/lib/image.ts` (Replicate) — no direct
+ * provider SDK calls here.
  */
 
 import { createTool } from "@inngest/agent-kit";
@@ -49,7 +49,7 @@ async function uploadToGridFs(
 export const generatePosterTool = createTool({
   name: "generate_poster",
   description:
-    "Generates a poster image from a prompt (via OpenRouter) and stores it in GridFS, returning the stored image id.",
+    "Generates a poster image from a prompt (via Replicate) and stores it in GridFS, returning the stored image id.",
   parameters: z.object({ prompt: z.string() }),
   handler: async ({ prompt }, { network }): Promise<{ posterImageId: string }> => {
     const state = network.state.data as NetworkState;

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SourceCitationChip } from "@/components/pipeline";
-import { Badge, Button, Card, EmptyState, Modal, StatusBadge, useToast } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Input, Modal, StatusBadge, Textarea, useToast } from "@/components/ui";
 import { formatElapsed, stageElapsedMs } from "@/lib/duration";
 import type { ErrorResponse, GenerateBlockedResponse, GenerateResponse, PostDetail } from "@/lib/dto";
 
@@ -79,19 +79,72 @@ export function PostView({ post }: PostViewProps) {
   const [deleting, setDeleting] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
-  const paragraphs = useMemo(() => paragraphsOf(post.finalPost), [post.finalPost]);
+  // Local overrides so a saved edit shows immediately, without waiting on the
+  // next poll from usePostPolling (the parent owns the actual `post` prop).
+  const [overrideTitle, setOverrideTitle] = useState<string | undefined>(undefined);
+  const [overrideBody, setOverrideBody] = useState<string | undefined>(undefined);
+  const effectiveTitle = overrideTitle ?? post.title;
+  const effectiveBody = overrideBody ?? post.finalPost;
+
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editBody, setEditBody] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const paragraphs = useMemo(() => paragraphsOf(effectiveBody), [effectiveBody]);
   const sourcesWithVerification = useMemo(
     () => computeSourceVerification(post.sources, post.verifiedFindings),
     [post.sources, post.verifiedFindings],
   );
-  const generationMs = stageElapsedMs(post.createdAt, post.updatedAt, Date.now());
+  // `post` is always "done" here, so `updatedAt` is always set and
+  // `stageElapsedMs`'s third arg (a live "now" fallback for an in-progress
+  // stage) is never actually used — pass a deterministic value instead of
+  // `Date.now()`, which the "no impure calls during render" rule flags.
+  const generationMs = stageElapsedMs(
+    post.createdAt,
+    post.updatedAt,
+    new Date(post.updatedAt).getTime(),
+  );
   const posterUrl = post.posterImageId ? `/api/posters/${post.posterImageId}` : undefined;
-  const title = post.title || post.topic;
+  const title = effectiveTitle || post.topic;
+
+  function startEditing() {
+    setEditTitle(title);
+    setEditBody(effectiveBody ?? "");
+    setEditing(true);
+  }
+
+  async function handleSaveEdit() {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/posts/${post.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: editTitle.trim(), finalPost: editBody }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as ErrorResponse | null;
+        throw new Error(body?.error?.message ?? `Request failed with status ${res.status}`);
+      }
+      setOverrideTitle(editTitle.trim());
+      setOverrideBody(editBody);
+      setEditing(false);
+      toast({ title: "Post updated", tone: "success" });
+    } catch (err) {
+      toast({
+        title: "Couldn't save changes",
+        description: err instanceof Error ? err.message : "Something went wrong.",
+        tone: "error",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function handleCopy() {
     setCopying(true);
     try {
-      await navigator.clipboard.writeText(post.finalPost ?? "");
+      await navigator.clipboard.writeText(effectiveBody ?? "");
       toast({ title: "Copied to clipboard", tone: "success" });
     } catch {
       toast({
@@ -162,103 +215,155 @@ export function PostView({ post }: PostViewProps) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge status={post.status} />
-          <Badge tone="neutral">
-            <span className="font-mono">{formatTimestamp(post.createdAt)}</span>
-          </Badge>
-        </div>
-        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{title}</h1>
-      </header>
-
-      {posterUrl && (
-        <img
-          src={posterUrl}
-          alt={title}
-          className="w-full rounded-[var(--radius-xl)] border border-border object-cover shadow-[var(--shadow-sm)]"
-        />
-      )}
-
-      <article className="font-serif text-lg leading-relaxed text-gray-800">
-        {paragraphs.length > 0 ? (
-          paragraphs.map((paragraph, i) => (
-            <p key={i} className="mb-5 last:mb-0">
-              {paragraph}
-            </p>
-          ))
-        ) : (
-          <p className="font-sans text-sm text-gray-500">No article body was generated for this post.</p>
-        )}
-      </article>
-
-      <Card>
-        <h2 className="mb-3 text-base font-semibold text-gray-900">Sources</h2>
-        {sourcesWithVerification.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            {sourcesWithVerification.map((source) => (
-              <SourceCitationChip
-                key={source.url}
-                title={source.title}
-                url={source.url}
-                verified={source.verified}
-              />
-            ))}
+    <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="min-w-0 space-y-6">
+        {posterUrl ? (
+          <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-border shadow-[var(--shadow-sm)]">
+            <img src={posterUrl} alt={title} className="w-full object-cover" />
           </div>
         ) : (
-          <EmptyState title="No sources" description="This post didn't cite any external sources." />
+          <div className="rounded-[var(--radius-xl)] border border-border bg-[#0b1210] px-6 py-10 text-white">
+            <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-white/60">PostForge &middot; {new Date(post.createdAt).getFullYear()}</p>
+            <h2 className="mt-3 font-serif text-2xl">{title}</h2>
+          </div>
         )}
-      </Card>
 
-      <Card>
-        <h2 className="mb-3 text-base font-semibold text-gray-900">Details</h2>
-        <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-gray-500">Model</dt>
-            <dd className="font-mono text-gray-900">{post.options.model ?? "default"}</dd>
+        <header className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={post.status} />
+            <Badge tone="neutral">
+              <span className="font-mono">{formatTimestamp(post.createdAt)}</span>
+            </Badge>
           </div>
-          <div>
-            <dt className="text-gray-500">Image model</dt>
-            <dd className="font-mono text-gray-900">{post.options.imageModel ?? "default"}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Generation time</dt>
-            <dd className="text-gray-900">
-              {generationMs !== undefined ? formatElapsed(generationMs) : "—"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Created</dt>
-            <dd className="text-gray-900">{formatTimestamp(post.createdAt)}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500">Last updated</dt>
-            <dd className="text-gray-900">{formatTimestamp(post.updatedAt)}</dd>
-          </div>
-        </dl>
-      </Card>
+          {editing ? (
+            <Input
+              label="Title"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="text-xl font-semibold"
+            />
+          ) : (
+            <h1 className="text-3xl font-semibold tracking-tight text-text">{title}</h1>
+          )}
+          <p className="font-mono text-xs uppercase tracking-wide text-gray-500">
+            {formatTimestamp(post.createdAt)} &middot; {post.options.model ?? "default model"}
+          </p>
+        </header>
 
-      <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" onClick={handleCopy} loading={copying} disabled={!post.finalPost}>
-          Copy
-        </Button>
-        {posterUrl && (
-          <a href={posterUrl} download={`${slugify(title)}-poster.png`}>
-            <Button variant="secondary">Download poster</Button>
-          </a>
+        {editing ? (
+          <div className="space-y-3">
+            <Textarea
+              label="Article body"
+              hint="Separate paragraphs with a blank line."
+              value={editBody}
+              onChange={(e) => setEditBody(e.target.value)}
+              rows={16}
+              className="font-serif text-base leading-relaxed"
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setEditing(false)} disabled={saving}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveEdit} loading={saving} disabled={!editTitle.trim()}>
+                Save
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <article className="font-serif text-lg leading-relaxed text-gray-800">
+            {paragraphs.length > 0 ? (
+              paragraphs.map((paragraph, i) => (
+                <p key={i} className="mb-5 last:mb-0">
+                  {paragraph}
+                </p>
+              ))
+            ) : (
+              <p className="font-sans text-sm text-gray-500">No article body was generated for this post.</p>
+            )}
+          </article>
         )}
-        <Button variant="secondary" onClick={handleRegenerate} loading={regenerating}>
-          Regenerate
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={() => setConfirmDeleteOpen(true)}
-          disabled={deleting}
-        >
-          Delete
-        </Button>
+
+        <Card>
+          <h2 className="mb-3 text-base font-semibold text-text">Sources</h2>
+          {sourcesWithVerification.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {sourcesWithVerification.map((source) => (
+                <SourceCitationChip
+                  key={source.url}
+                  title={source.title}
+                  url={source.url}
+                  verified={source.verified}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState title="No sources" description="This post didn't cite any external sources." />
+          )}
+        </Card>
       </div>
+
+      <aside className="space-y-4 lg:sticky lg:top-20">
+        <Card>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={startEditing} disabled={editing}>
+              Edit
+            </Button>
+            <Button onClick={handleCopy} loading={copying} disabled={!effectiveBody}>
+              Copy
+            </Button>
+            {posterUrl ? (
+              <a href={posterUrl} download={`${slugify(title)}-poster.png`}>
+                <Button variant="secondary" fullWidth>
+                  Poster
+                </Button>
+              </a>
+            ) : (
+              <Button variant="secondary" disabled>
+                Poster
+              </Button>
+            )}
+            <Button variant="secondary" onClick={handleRegenerate} loading={regenerating}>
+              Regenerate
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => setConfirmDeleteOpen(true)}
+              disabled={deleting}
+              className="col-span-2"
+            >
+              Delete
+            </Button>
+          </div>
+        </Card>
+
+        <Card>
+          <h2 className="mb-3 font-mono text-[11px] uppercase tracking-wide text-gray-500">
+            Generation metadata
+          </h2>
+          <dl className="space-y-2.5 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-gray-500">Model</dt>
+              <dd className="font-mono text-text">{post.options.model ?? "default"}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-gray-500">Image model</dt>
+              <dd className="truncate font-mono text-text">{post.options.imageModel ?? "default"}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-gray-500">Generation time</dt>
+              <dd className="text-text">{generationMs !== undefined ? formatElapsed(generationMs) : "—"}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-gray-500">Created</dt>
+              <dd className="text-text">{formatTimestamp(post.createdAt)}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-gray-500">Last updated</dt>
+              <dd className="text-text">{formatTimestamp(post.updatedAt)}</dd>
+            </div>
+          </dl>
+        </Card>
+      </aside>
 
       <Modal
         open={confirmDeleteOpen}

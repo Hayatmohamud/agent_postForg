@@ -5,13 +5,16 @@ import type { PostSummary } from "@/lib/dto";
 import { Card, StatusBadge } from "@/components/ui";
 import { formatRelativeTime } from "@/lib/format";
 import { PosterThumb } from "./PosterThumb";
+import { DeletePostButton } from "./DeletePostButton";
 
 export interface PostCardProps {
   post: PostSummary;
+  /** Shows a delete button on the card when provided (e.g. Library, not Dashboard's recent-posts list). */
+  onDeleted?: () => void;
 }
 
 /** Grid-view card for the Library (T13): poster, title/topic, status, date. Click navigates to the post detail (T12). */
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, onDeleted }: PostCardProps) {
   const router = useRouter();
   const title = post.title || post.topic;
 
@@ -35,6 +38,7 @@ export function PostCard({ post }: PostCardProps) {
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
           <h3 className="line-clamp-2 text-sm font-semibold text-gray-900">{title}</h3>
+          {onDeleted && <DeletePostButton postId={post.id} title={title} onDeleted={onDeleted} />}
         </div>
         {post.title && <p className="line-clamp-1 text-xs text-gray-500">{post.topic}</p>}
         <div className="mt-auto flex items-center justify-between pt-1">

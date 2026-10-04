@@ -27,7 +27,9 @@ export function Tooltip({ content, children, side = "top", className }: TooltipP
       <span
         role="tooltip"
         className={cn(
-          "pointer-events-none absolute z-50 whitespace-nowrap rounded-[var(--radius-sm)] bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow-[var(--shadow-md)]",
+          // Fixed dark chip regardless of app theme (not the theme-reactive
+          // gray-900 token, which is near-white in dark mode).
+          "pointer-events-none absolute z-50 whitespace-nowrap rounded-[var(--radius-sm)] bg-[#0b1210] px-2 py-1 text-xs text-white opacity-0 shadow-[var(--shadow-md)]",
           "transition-opacity duration-[var(--duration-fast)] ease-[var(--ease-standard)]",
           "group-hover:opacity-100 group-focus-within:opacity-100",
           sidePosition[side],

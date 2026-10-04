@@ -17,7 +17,7 @@
  *  - NOT TESTED here: the six AgentKit `Agent` instances' own model-driven
  *    tool-call decisions (T04's research/verify/writer/editor/illustrator/
  *    publisher agents -- they decide *when* to call these tools via a real
- *    LLM turn, which needs OPENROUTER_API_KEY) and `src/inngest/
+ *    LLM turn, which needs GEMINI_API_KEY) and `src/inngest/
  *    functions.ts`'s Inngest `step.run`/durable-execution wrapper itself
  *    (needs a running Inngest dev server). This test instead drives the
  *    same state machine `functions.ts`'s router wrapper drives --
@@ -156,7 +156,7 @@ describe("generate-post pipeline happy path (router + repo + tools, agents/Innge
     state.title = "Integration Topic: A Deep Dive";
     await updateStage(postId, "edit", { state: "done", endedAt: new Date() });
 
-    // --- Illustrate (real tool, mocked OpenRouter image call + GridFS) ---
+    // --- Illustrate (real tool, mocked Gemini image call + GridFS) ---
     expect(routeNext(state, agents)).toBe(agents.illustrator);
     await updateStage(postId, "illustrate", { state: "active", startedAt: new Date() }, STAGE_TO_STATUS.illustrate);
     await (generatePosterTool.handler as (args: unknown, ctx: unknown) => Promise<unknown>)(

@@ -45,7 +45,7 @@ ${JSON.stringify(findings, null, 2)}
 Requested tone: ${options.tone ?? "informative and engaging"}
 Requested length: ${options.length ?? "medium"}
 
-Polish the draft into a final, publish-ready post: tighten prose, fix structure, and remove or rephrase any claim that isn't actually supported by the verified findings above. Write a short, compelling title.
+Polish the draft into a final, publish-ready post: improve sentence flow, fix structure, and remove or rephrase any claim that isn't actually supported by the verified findings above. Preserve the draft's length and level of detail — you are refining it, not summarizing or cutting it down. Write a short, compelling title.
 
 Respond with ONLY a JSON object, no prose, no markdown code fences, shaped exactly as:
 {"title": "...", "finalPost": "..."}`;

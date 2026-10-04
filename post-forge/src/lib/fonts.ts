@@ -1,30 +1,32 @@
-import { Geist, Geist_Mono, Lora } from "next/font/google";
+import { Instrument_Sans, JetBrains_Mono, Newsreader } from "next/font/google";
 
 /**
- * PostForge type system (DESIGN_PROMPT.md section 4):
- * - UI sans:  Geist        — the modern grotesque used for all interface chrome.
- * - Editorial serif: Lora  — used only for rendered post body copy, so a
- *   finished post reads like a real article rather than app UI.
- * - Mono: Geist Mono       — source URLs, model names, run ids, other
+ * PostForge type system (redesign, superseding the original DESIGN_PROMPT.md
+ * section 4 choices — see CLAUDE.md's "locked decisions" note):
+ * - UI sans:  Instrument Sans — all interface chrome.
+ * - Editorial serif: Newsreader — rendered post body copy, landing hero
+ *   emphasis, testimonial quotes, poster headlines.
+ * - Mono: JetBrains Mono      — source URLs, model names, run ids, other
  *   technical/machine-generated labels.
  *
  * All three are real Google fonts loaded via next/font/google (self-hosted,
  * zero layout shift, no external network request at runtime).
  */
-export const fontSans = Geist({
-  variable: "--font-geist-sans",
+export const fontSans = Instrument_Sans({
+  variable: "--font-instrument-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-export const fontMono = Geist_Mono({
-  variable: "--font-geist-mono",
+export const fontMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
   display: "swap",
 });
 
-export const fontEditorial = Lora({
-  variable: "--font-editorial",
+export const fontEditorial = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
   display: "swap",
 });

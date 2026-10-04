@@ -42,7 +42,7 @@ function isEmpty(list: unknown[] | undefined): boolean {
  * `network.state.data`, exported standalone so it can be unit-tested with
  * hand-built partial states and no real model/agent instances (the BRD's
  * own required verification path, and the only one available without
- * OPENROUTER_API_KEY/SERPER_API_KEY/MONGODB_URI in this environment).
+ * GEMINI_API_KEY/SERPER_API_KEY/MONGODB_URI in this environment).
  */
 export function routeNext(
   state: NetworkState,
@@ -52,7 +52,7 @@ export function routeNext(
   if (isEmpty(state.verifiedFindings)) return agents.verify;
   if (!state.draft) return agents.writer;
   if (!state.finalPost) return agents.editor;
-  if (!state.posterImageId) return agents.illustrator;
+  if (!state.posterImageId && !state.posterSkipped) return agents.illustrator;
   if (!state.published) return agents.publisher;
   return undefined;
 }

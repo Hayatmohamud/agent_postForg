@@ -5,7 +5,7 @@ import { AGENT_ORDER, AGENT_STAGES } from "@/components/pipeline";
 import type { StatsResponse } from "@/lib/dto";
 import { formatDurationMs } from "@/lib/format";
 import { ChartEmpty } from "./ChartEmpty";
-import { axisTickStyle, BRAND, GRID_COLOR, tooltipContentStyle, tooltipLabelStyle } from "./theme";
+import { useChartColors } from "./theme";
 
 export interface StageTimingsChartProps {
   avgStageTimingsMs: StatsResponse["avgStageTimingsMs"] | undefined;
@@ -20,6 +20,8 @@ export interface StageTimingsChartProps {
  * re-derived, so it always matches the pipeline shown elsewhere in the app.
  */
 export function StageTimingsChart({ avgStageTimingsMs, height = 240 }: StageTimingsChartProps) {
+  const { brand, gridColor, axisTickStyle, tooltipContentStyle, tooltipLabelStyle, cursorFill } =
+    useChartColors();
   const data = AGENT_ORDER.map((key) => ({
     key,
     label: AGENT_STAGES[key].label,
@@ -32,7 +34,7 @@ export function StageTimingsChart({ avgStageTimingsMs, height = 240 }: StageTimi
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: 0 }}>
-        <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
+        <CartesianGrid stroke={gridColor} strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="label" tick={axisTickStyle} axisLine={false} tickLine={false} />
         <YAxis
           tick={axisTickStyle}
@@ -45,9 +47,9 @@ export function StageTimingsChart({ avgStageTimingsMs, height = 240 }: StageTimi
           contentStyle={tooltipContentStyle}
           labelStyle={tooltipLabelStyle}
           formatter={(value) => [formatDurationMs(Number(value)), "Avg time"] as [string, string]}
-          cursor={{ fill: "rgba(0,0,0,0.03)" }}
+          cursor={{ fill: cursorFill }}
         />
-        <Bar dataKey="ms" fill={BRAND} radius={[4, 4, 0, 0]} maxBarSize={40} />
+        <Bar dataKey="ms" fill={brand} radius={[4, 4, 0, 0]} maxBarSize={40} />
       </BarChart>
     </ResponsiveContainer>
   );

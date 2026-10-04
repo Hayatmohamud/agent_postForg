@@ -56,7 +56,7 @@ export function PromptField({
       )}
       <div
         className={cn(
-          "flex flex-col gap-3 rounded-[var(--radius-xl)] border bg-white p-3 shadow-[var(--shadow-md)]",
+          "flex flex-col gap-3 rounded-[var(--radius-xl)] border bg-surface p-3 shadow-[var(--shadow-md)]",
           "transition-shadow duration-[var(--duration-base)] ease-[var(--ease-standard)]",
           focused ? "border-brand-500 shadow-[var(--shadow-lg)]" : "border-border-strong",
           error && "border-error-500",
