@@ -1,5 +1,6 @@
 "use client";
 
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui";
 
 function GoogleIcon() {
@@ -33,8 +34,14 @@ function GithubIcon() {
   );
 }
 
-/** Cosmetic-only social auth buttons — no real OAuth wiring (auth is a stub for T09/T16). */
-export function SocialAuthButtons({ disabled }: { disabled?: boolean }) {
+/** Real Auth.js OAuth sign-in — supersedes the earlier cosmetic-stub decision (see CLAUDE.md). */
+export function SocialAuthButtons({
+  disabled,
+  callbackUrl = "/dashboard",
+}: {
+  disabled?: boolean;
+  callbackUrl?: string;
+}) {
   return (
     <div className="grid grid-cols-2 gap-3">
       <Button
@@ -43,7 +50,7 @@ export function SocialAuthButtons({ disabled }: { disabled?: boolean }) {
         fullWidth
         disabled={disabled}
         leftIcon={<GoogleIcon />}
-        onClick={(event) => event.preventDefault()}
+        onClick={() => signIn("google", { callbackUrl })}
       >
         Google
       </Button>
@@ -53,7 +60,7 @@ export function SocialAuthButtons({ disabled }: { disabled?: boolean }) {
         fullWidth
         disabled={disabled}
         leftIcon={<GithubIcon />}
-        onClick={(event) => event.preventDefault()}
+        onClick={() => signIn("github", { callbackUrl })}
       >
         GitHub
       </Button>

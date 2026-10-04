@@ -9,28 +9,40 @@
  *   this module never crashes the app just because an optional feature's
  *   key isn't configured yet.
  *
- * Amendment (T02, per CLAUDE.md's "Env contract" section): all AI calls —
- * text AND poster image — route through OpenRouter via a single
- * `OPENROUTER_API_KEY` (legacy alias `OPEN_ROUTER` also accepted). There are
- * no separate Gemini/OpenAI provider keys; model selection is via env-
- * overridable OpenRouter model ids (`LLM_MODEL_SMART`, `LLM_MODEL_CHEAP`,
- * `LLM_MODEL`, `IMAGE_MODEL`).
+ * Amendment (post-T16): text AI (research/verify/write/edit) goes through
+ * Google's Gemini API on `GEMINI_API_KEY`, via Gemini's OpenAI-compatible
+ * chat-completions endpoint (`src/lib/models.ts`) so the existing AgentKit
+ * `openai()` adapter keeps working unchanged. `LLM_MODEL_SMART`/
+ * `LLM_MODEL_CHEAP` hold Gemini model ids (e.g. `gemini-3.5-flash`), not
+ * OpenRouter ids.
+ *
+ * Further amendment (same day): poster image generation uses **Replicate**
+ * (`REPLICATE_API_KEY`, `src/lib/image.ts`), a separate credential from
+ * Gemini — not Gemini's own image models. Discovered live: this project's
+ * `GEMINI_API_KEY` has zero free-tier quota for every Gemini image model
+ * tested (`gemini-2.5-flash-image` and siblings all 429 `limit: 0`), a
+ * Google Cloud billing restriction, so image generation was moved back to
+ * Replicate (which the user already holds a working key for) while text
+ * generation stays on Gemini. `IMAGE_MODEL` holds a **Replicate** model id
+ * (`owner/name`, e.g. default `black-forest-labs/flux-schnell`), not a
+ * Gemini one.
  */
 
 /** All env vars PostForge knows about. Keep in sync with `.env.example`. */
 export type EnvVarName =
-  | "OPENROUTER_API_KEY"
-  | "OPEN_ROUTER"
-  | "LLM_MODEL"
+  | "GEMINI_API_KEY"
   | "LLM_MODEL_SMART"
   | "LLM_MODEL_CHEAP"
   | "IMAGE_MODEL"
+  | "REPLICATE_API_KEY"
   | "SERPER_API_KEY"
   | "MONGODB_URI"
   | "INNGEST_EVENT_KEY"
   | "INNGEST_SIGNING_KEY"
   | "MAX_INFLIGHT_RUNS"
-  | "DEDUPE_WINDOW_HOURS";
+  | "DEDUPE_WINDOW_HOURS"
+  | "RESEND_API_KEY"
+  | "RESEND_FROM_EMAIL";
 
 export class MissingEnvError extends Error {
   constructor(name: EnvVarName) {
@@ -57,17 +69,24 @@ export function requireEnv(name: EnvVarName): string {
   return value;
 }
 
-/**
- * Reads the single OpenRouter API key used for every AI call (text and
- * image), accepting the legacy `OPEN_ROUTER` alias. Throws a
- * `MissingEnvError` (named `OPENROUTER_API_KEY`) if neither is set.
- */
-export function requireOpenRouterKey(): string {
-  const value = env("OPENROUTER_API_KEY") ?? env("OPEN_ROUTER");
-  if (value === undefined) {
-    throw new MissingEnvError("OPENROUTER_API_KEY");
-  }
-  return value;
+/** Reads the Gemini API key used for text generation (research/verify/write/edit). */
+export function requireGeminiKey(): string {
+  return requireEnv("GEMINI_API_KEY");
+}
+
+/** Reads the Replicate API token used for poster image generation. */
+export function requireReplicateKey(): string {
+  return requireEnv("REPLICATE_API_KEY");
+}
+
+/** Reads the Resend API key used to send sign-up OTP verification emails. */
+export function requireResendKey(): string {
+  return requireEnv("RESEND_API_KEY");
+}
+
+/** The "from" address OTP emails are sent as. Defaults to Resend's sandbox sender. */
+export function resendFromEmail(): string {
+  return env("RESEND_FROM_EMAIL") ?? "onboarding@resend.dev";
 }
 
 // ---------------------------------------------------------------------------

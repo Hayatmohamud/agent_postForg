@@ -3,13 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Avatar, Button, Input } from "@/components/ui";
+import { signOut, useSession } from "next-auth/react";
+import { Avatar, Button } from "@/components/ui";
+import { useTheme } from "@/hooks/useTheme";
 import { SIDEBAR_ID } from "@/components/Sidebar";
-import { MenuIcon, NewPostIcon, SearchIcon } from "@/components/shell/icons";
+import { BellIcon, ChevronDownIcon, MenuIcon, NewPostIcon } from "@/components/shell/icons";
+import { ThemeToggle } from "@/components/shell/ThemeToggle";
 
-function AvatarMenu() {
+function ProfileMenu() {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme, toggleTheme } = useTheme();
+  const { data: session } = useSession();
+  const name = session?.user?.name ?? "Account";
+  const email = session?.user?.email ?? "";
 
   useEffect(() => {
     if (!open) return;
@@ -35,32 +42,52 @@ function AvatarMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Account menu"
-        className="rounded-[var(--radius-full)]"
+        className="flex items-center gap-2 rounded-[var(--radius-lg)] border border-transparent py-1 pl-1 pr-2 hover:border-border hover:bg-surface-2"
       >
-        <Avatar name="Jordan Lee" size="sm" />
+        <Avatar name={name} size="sm" />
+        <span className="hidden text-sm text-text sm:inline">{name.split(" ")[0]}</span>
+        <span className="hidden text-gray-400 sm:inline">
+          <ChevronDownIcon />
+        </span>
       </button>
       {open && (
         <div
           role="menu"
           aria-label="Account"
-          className="absolute right-0 z-10 mt-2 w-48 animate-scale-in rounded-[var(--radius-md)] border border-border bg-white p-1 shadow-[var(--shadow-lg)]"
+          className="absolute right-0 z-10 mt-2 w-52 animate-scale-in rounded-[var(--radius-lg)] border border-border bg-surface p-1.5 shadow-[var(--shadow-lg)]"
         >
-          <div className="px-3 py-2 text-xs text-gray-400">Signed in (stub) &middot; hayadmohamudhassan</div>
+          <div className="mb-1.5 border-b border-border px-2.5 pb-2 pt-1">
+            <div className="text-sm font-semibold text-text">{name}</div>
+            <div className="text-xs text-gray-500">{email}</div>
+          </div>
           <Link
             role="menuitem"
             href="/settings"
             onClick={() => setOpen(false)}
-            className="block rounded-[var(--radius-sm)] px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            className="block rounded-[var(--radius-sm)] px-2.5 py-2 text-sm text-text hover:bg-surface-2"
           >
-            Settings
+            Profile
           </Link>
           <button
             role="menuitem"
             type="button"
-            onClick={() => setOpen(false)}
-            className="block w-full rounded-[var(--radius-sm)] px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+            onClick={toggleTheme}
+            className="flex w-full items-center justify-between rounded-[var(--radius-sm)] px-2.5 py-2 text-left text-sm text-text hover:bg-surface-2"
           >
-            Sign out
+            Theme
+            <span className="capitalize text-gray-500">{resolvedTheme}</span>
+          </button>
+          <div className="my-1.5 h-px bg-border" />
+          <button
+            role="menuitem"
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              signOut({ callbackUrl: "/" });
+            }}
+            className="block w-full rounded-[var(--radius-sm)] px-2.5 py-2 text-left text-sm text-error-600 hover:bg-error-50"
+          >
+            Log out
           </button>
         </div>
       )}
@@ -74,55 +101,50 @@ export interface TopbarProps {
 }
 
 /**
- * Persistent top bar: logo, mobile nav toggle, search (navigates to
- * `/library?q=...` — T06's real search endpoint doesn't exist yet, per the
- * BRD's fallback), the global "New Post" CTA, and a cosmetic avatar menu.
+ * Persistent top bar: mobile nav toggle + logo (sidebar carries the logo at
+ * md+), the global "New Post" CTA, a cosmetic notification bell, the real
+ * theme toggle, and the profile menu. Search lives only on the Library page
+ * (its own "Search by topic or title" field) — no global search bar here.
  */
 export function Topbar({ mobileNavOpen, onToggleMobileNav }: TopbarProps) {
   const router = useRouter();
-  const [query, setQuery] = useState("");
-
-  function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const trimmed = query.trim();
-    router.push(trimmed ? `/library?q=${encodeURIComponent(trimmed)}` : "/library");
-  }
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-white/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-white/80 sm:px-6">
+    <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-bg/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-bg/85 sm:px-6">
       <button
         type="button"
         onClick={onToggleMobileNav}
         aria-label="Toggle navigation"
         aria-expanded={mobileNavOpen}
         aria-controls={SIDEBAR_ID}
-        className="-ml-1 flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] text-gray-500 hover:bg-gray-100 hover:text-gray-900 md:hidden"
+        className="-ml-1 flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] text-gray-500 hover:bg-surface-2 hover:text-text md:hidden"
       >
         <MenuIcon />
       </button>
 
-      <Link href="/dashboard" className="flex shrink-0 items-center gap-2">
+      <Link href="/dashboard" className="flex shrink-0 items-center gap-2 md:hidden">
         <span className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] bg-brand-600 text-sm font-bold text-white">
           PF
         </span>
-        <span className="hidden text-sm font-semibold text-gray-900 sm:inline">PostForge</span>
+        <span className="hidden text-sm font-semibold text-text sm:inline">PostForge</span>
       </Link>
 
-      <form onSubmit={handleSearchSubmit} className="hidden flex-1 sm:block sm:max-w-sm">
-        <Input
-          aria-label="Search posts"
-          placeholder="Search posts..."
-          leftIcon={<SearchIcon />}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </form>
-
-      <div className="ml-auto flex items-center gap-2 sm:gap-3">
+      <div className="ml-auto flex items-center gap-2 sm:gap-2.5">
         <Button size="sm" leftIcon={<NewPostIcon />} onClick={() => router.push("/new-post")}>
           New Post
         </Button>
-        <AvatarMenu />
+        {/* Cosmetic — no notification backend exists yet. */}
+        <button
+          type="button"
+          aria-label="Notifications"
+          className="relative flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border border-border bg-surface text-gray-600 hover:bg-surface-2"
+        >
+          <BellIcon />
+          <span className="absolute right-[7px] top-[7px] h-1.5 w-1.5 rounded-full border border-surface bg-brand-600" />
+        </button>
+        <ThemeToggle />
+        <div className="mx-0.5 h-6 w-px bg-border" />
+        <ProfileMenu />
       </div>
     </header>
   );

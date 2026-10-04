@@ -3,10 +3,12 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button, Input } from "@/components/ui";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { SocialAuthButtons } from "@/components/auth/SocialAuthButtons";
+import { OtpForm, type OtpSubmitResult } from "@/components/auth/OtpForm";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -19,9 +21,7 @@ interface FieldErrors {
 
 function validate(name: string, email: string, password: string): FieldErrors {
   const errors: FieldErrors = {};
-  if (!name.trim()) {
-    errors.name = "Enter your name.";
-  }
+  if (!name.trim()) errors.name = "Enter your name.";
   if (!email.trim()) {
     errors.email = "Enter your email address.";
   } else if (!EMAIL_RE.test(email.trim())) {
@@ -35,14 +35,26 @@ function validate(name: string, email: string, password: string): FieldErrors {
   return errors;
 }
 
+async function postJson(url: string, body: unknown): Promise<{ ok: boolean; message?: string }> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return { ok: false, message: data?.error?.message ?? "Something went wrong. Please try again." };
+  return { ok: true };
+}
+
 /**
- * Sign-up — cosmetic auth only (locked decision, DESIGN_PROMPT.md /
- * tasks/T09-public-surface.md): there is no real session, API call, or user
- * record created. Submit validates client-side, shows a loading state behind
- * a fake delay, then routes into the app shell (`/dashboard`, built by T08).
+ * Sign-up — real accounts: Google/GitHub OAuth (`SocialAuthButtons`), or
+ * email + password with mandatory email verification (`/api/auth/signup` ->
+ * OTP step -> `/api/auth/verify-otp` -> client-side `signIn("credentials")`
+ * completes the login). No account is usable until the OTP step succeeds.
  */
 export default function SignUpPage() {
   const router = useRouter();
+  const [step, setStep] = useState<"form" | "otp">("form");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,15 +71,38 @@ export default function SignUpPage() {
     if (Object.keys(nextErrors).length > 0) return;
 
     setLoading(true);
-    try {
-      // Stubbed submit: no account is actually created. We only simulate
-      // network latency before navigating into the app shell.
-      await new Promise((resolve) => setTimeout(resolve, 900));
-      router.push("/dashboard");
-    } catch {
-      setFormError("Something went wrong creating your account. Please try again.");
-      setLoading(false);
+    const result = await postJson("/api/auth/signup", { name: name.trim(), email: email.trim(), password });
+    setLoading(false);
+    if (!result.ok) {
+      setFormError(result.message ?? "Something went wrong.");
+      return;
     }
+    setStep("otp");
+  }
+
+  async function handleVerify(code: string): Promise<OtpSubmitResult> {
+    const verifyResult = await postJson("/api/auth/verify-otp", { email: email.trim(), code });
+    if (!verifyResult.ok) return { ok: false, error: verifyResult.message };
+
+    const signInResult = await signIn("credentials", { email: email.trim(), password, redirect: false });
+    if (signInResult?.error) {
+      return { ok: false, error: "Verified, but sign-in failed — try signing in from the sign-in page." };
+    }
+    router.push("/dashboard");
+    return { ok: true };
+  }
+
+  async function handleResend(): Promise<OtpSubmitResult> {
+    const result = await postJson("/api/auth/resend-otp", { email: email.trim() });
+    return { ok: result.ok, error: result.message };
+  }
+
+  if (step === "otp") {
+    return (
+      <AuthCard title="Verify your email" description="One more step to finish creating your account.">
+        <OtpForm email={email.trim()} onSubmit={handleVerify} onResend={handleResend} />
+      </AuthCard>
+    );
   }
 
   return (
@@ -83,7 +118,7 @@ export default function SignUpPage() {
         </>
       }
     >
-      <SocialAuthButtons disabled={loading} />
+      <SocialAuthButtons disabled={loading} callbackUrl="/dashboard" />
 
       <div className="my-5 flex items-center gap-3" aria-hidden="true">
         <div className="h-px flex-1 bg-border" />
